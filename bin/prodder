@@ -1,0 +1,4 @@
+#!/usr/bin/env ruby
+$: << File.expand_path('../lib', File.dirname(__FILE__))
+require 'prodder/cli'
+Prodder::CLI.start
