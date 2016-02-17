@@ -259,6 +259,14 @@ $ prodder push -c prodder.yml
 * Support specifying the options to pass to each pg_dump form.
 * Select dumping only a subset of a seed table. (pg_dump won't do this ...)
 
+## Previous Contributors
+* [Kyle Hargraves](https://github.com/pd)
+* [Sri Rangarajan](https://github.com/Slania)
+* [Emmanuel Sambo](https://github.com/esambo)
+* [Cindy Wise](https://github.com/cyyyz)
+* [Robert Nubel](https://github.com/rnubel)
+* [Josh Cheek](https://github.com/JoshCheek)
+
 ## License
 
 The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
