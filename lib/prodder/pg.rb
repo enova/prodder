@@ -223,7 +223,7 @@ module Prodder
           end
 
           tmp_sql << " CONNECTION LIMIT #{role['rolconnlimit']}" unless role['rolconnlimit'].eql?("-1")
-          tmp_sql << " VALID UNTIL #{role['rolvaliduntil']}" unless role['rolvaliduntil'].nil?
+          tmp_sql << " VALID UNTIL '#{role['rolvaliduntil']}'" unless role['rolvaliduntil'].nil?
           tmp_sql << ";\n"
           tmp_sql << "COMMENT ON ROLE \"#{role['rolname']}\" IS '#{role['rolcomment']}';\n" unless role['rolcomment'].nil?
           rolalter_sql << "SELECT * FROM alter_role('#{role['rolname']}', $$#{tmp_sql}$$);\n"
