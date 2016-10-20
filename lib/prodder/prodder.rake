@@ -41,8 +41,7 @@ namespace :db do
   task :reset => ['db:drop', 'db:setup']
 
   desc "Create the database, load db/structure.sql, db/seeds.sql, db/quality_checks.sql"
-  task :setup => ['db:create', 'db:structure:load', 'db:seed', 'db:quality_check', 'db:permission', 'db:set_search_path']
-
+  task :setup => ['db:create', 'db:structure:load', 'db:seed', 'db:quality_check', 'db:permission', 'db:settings']
 
   dependencies = [:load_config]
   if Rake::Task.task_defined?('rails_env')
@@ -260,18 +259,23 @@ namespace :db do
     end
   end
 
-  desc "Find config setting for schema_search_path and actually alter the database's internal search_path for the database direct connections"
-  task :set_search_path => dependencies do
+  desc "Load database settings"
+  task :settings => dependencies do
     config = ActiveRecord::Base.configurations[ENV['RAILS_ENV'] || Rails.env]
-    if config.include? "schema_search_path"
-      config["username"] = config["superuser"] if config["superuser"] && File.exist?('db/permissions.sql')
-      set_psql_env config
-      puts "Setting search_path in database '#{config['database']}'"
-      `psql --no-psqlrc --command "ALTER DATABASE #{config['database']} SET search_path = #{config['schema_search_path']}" #{Shellwords.escape(config['database'])}`
-      raise "Error setting search_path (#{config['schema_search_path']})" if $?.exitstatus != 0
-    else
-      puts 'schema_search_path not found in config file: database search_path not modified.'
+    config["username"] = config["superuser"] if config["superuser"] && File.exist?('db/permissions.sql')
+    set_psql_env config
+    puts "Loading db/settings.sql into database '#{config['database']}'"
+    disconnect
+    ActiveRecord::Base.establish_connection((ENV['RAILS_ENV'] || Rails.env).intern)
+    is_super = ActiveRecord::Base.connection.execute(<<-SQL).first['is_super']
+      select 1 as is_super from pg_roles where rolname = '#{config['username']}' and rolsuper
+    SQL
+    unless is_super
+      puts "Restoring settings as config/database.yml non-superuser: #{config['username']}, expect errors, or rerun after granting superuser"
     end
+    `psql --no-psqlrc -f db/settings.sql #{Shellwords.escape(config['database'])}`
+
+    raise 'Error loading db/settings.sql' if $?.exitstatus != 0
   end
 
   # Empty this, we don't want db:migrate writing structure.sql any more.

@@ -3,7 +3,7 @@ Feature: prodder dump
   Background:
     Given a prodder config in "prodder.yml" with project: blog
 
-  Scenario: Happy path: dump structure.sql, listed seed tables, quality_checks.sql and permissions.sql
+  Scenario: Happy path: dump structure.sql, listed seed tables, quality_checks.sql, permissions.sql and settings.sql
     When I run `prodder dump -c prodder.yml`
     Then the exit status should be 0
     And  the workspace file "blog/db/structure.sql" should match /CREATE TABLE posts/
@@ -13,6 +13,7 @@ Feature: prodder dump
     And  the workspace file "blog/db/quality_checks.sql" should match /SET search_path/
     And  the workspace file "blog/db/quality_checks.sql" should match /CREATE TRIGGER /
     And  the workspace file "blog/db/permissions.sql" should match /GRANT /
+    And  the workspace file "blog/db/settings.sql" should match /ALTER DATABASE /
 
   Scenario: Include specified users, exclude other login roles from permissions dump
     When I run `prodder dump -c prodder.yml`
@@ -117,6 +118,11 @@ Feature: prodder dump
     When  I run `prodder dump -c prodder.yml`
     Then  the exit status should be 0
     And   the workspace file "blog/db/structure.sql" should not match /CREATE TABLE authors/
+
+  Scenario: Verify settings file contents
+    Given I add a custom parameter "c.p" with value "v" in the "blog" project's database
+    When  I run `prodder dump -c prodder.yml`
+    Then the workspace file "blog/db/settings.sql" should match /ALTER DATABASE prodder__blog_prod SET  c.p=v/
 
   Scenario: Exclude specified schemas from structure dump
     Given the prodder config in "prodder.yml" excludes the schema "ads" from the dump of "blog"

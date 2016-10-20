@@ -1,3 +1,5 @@
+ALTER DATABASE prodder__blog_prod SET custom.parameter = 1;
+
 CREATE TABLE authors (
   author_id serial primary key,
   name text
