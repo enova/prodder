@@ -1,3 +1,5 @@
+ALTER DATABASE prodder__blog_prod SET custom.parameter = 1;
+
 CREATE TABLE authors (
   author_id serial primary key,
   name text
@@ -34,6 +36,42 @@ $$
 
 CREATE TRIGGER test_comments BEFORE UPDATE OR INSERT ON comments FOR EACH ROW EXECUTE PROCEDURE test();
 
+CREATE OR REPLACE FUNCTION create_role_if_not_exists(rolename VARCHAR)
+RETURNS VOID
+AS
+$create_role_if_not_exists$
+DECLARE
+BEGIN
+  IF NOT EXISTS (
+      SELECT *
+      FROM   pg_catalog.pg_roles
+      WHERE  rolname = rolename) THEN
+    EXECUTE 'CREATE ROLE ' || quote_ident(rolename) || ' ;';
+  END IF;
+END;
+$create_role_if_not_exists$
+LANGUAGE PLPGSQL;
+
+SELECT create_role_if_not_exists('_90enva');
+SELECT create_role_if_not_exists('_91se');
+SELECT create_role_if_not_exists('_91qa');
+SELECT create_role_if_not_exists('_91b');
+SELECT create_role_if_not_exists('_92se');
+SELECT create_role_if_not_exists('_92qa');
+SELECT create_role_if_not_exists('_92b');
+SELECT create_role_if_not_exists('_93se');
+SELECT create_role_if_not_exists('_93qa');
+SELECT create_role_if_not_exists('_93b');
+SELECT create_role_if_not_exists('_94se');
+SELECT create_role_if_not_exists('_94qa');
+SELECT create_role_if_not_exists('_94b');
+SELECT create_role_if_not_exists('include_this');
+SELECT create_role_if_not_exists('exclude_this');
+SELECT create_role_if_not_exists('prodder__blog_prod:permissions_test:read_write');
+SELECT create_role_if_not_exists('prodder__blog_prod:permissions_test:read_only');
+SELECT create_role_if_not_exists('prodder__blog_prod:read_write');
+SELECT create_role_if_not_exists('prodder__blog_prod:read_only');
+
 GRANT "_90enva" TO "_91se";
 GRANT "_90enva" TO "_91qa";
 GRANT "_90enva" TO "_91b";
@@ -56,6 +94,7 @@ GRANT "prodder__blog_prod:permissions_test:read_only" TO exclude_this;
 
 GRANT "prodder__blog_prod:permissions_test:read_only" TO "prodder__blog_prod:read_only";
 GRANT "prodder__blog_prod:permissions_test:read_write" TO "prodder__blog_prod:read_write";
+ALTER ROLE "include_this" VALID UNTIL '2222-08-11 00:00:00-05';
 
 GRANT "prodder__blog_prod:read_only" TO prodder;
 

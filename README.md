@@ -126,8 +126,8 @@ And reimplement only the following:
 * `db:seed`: Load `db/seeds.sql` into the database of your current environment.
 * `db:quality_check`: Load `db/quality_checks.sql` into the database of your current environment, if present.
 * `db:reset`: db:drop db:setup
-* `db:set_search_path`: read schema_search_path from database.yml and alter the associated database search_path
-* `db:setup`: db:create db:structure:load db:seed db:quality_check db:set_search_path
+* `db:settings`: Load the contents of `db/settings.sql` into the database of your current environment.
+* `db:setup`: db:create db:structure:load db:seed db:quality_check db:settings
 * `db:test:prepare`: RAILS_ENV=test db:reset db:migrate
 * `db:test:clone_structure`: RAILS_ENV=test db:reset db:migrate
 * `test:prepare`: db:test:prepare

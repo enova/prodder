@@ -41,6 +41,31 @@ module Prodder
       run ['psql', db_name], sql
     end
 
+    def dump_settings(db_name, filename)
+      sql = <<-SQL
+        select unnest(setconfig)
+        from pg_catalog.pg_db_role_setting
+        join pg_database on pg_database.oid = setdatabase
+        -- 0 = default, for all users
+        where setrole = 0
+        and datname = '#{db_name}'
+      SQL
+
+      arguments = [
+        '-t',
+        '-c', sql
+      ]
+
+      run ['psql', *arguments.push(db_name)] do |out, err, success|
+        raise PGDumpError.new(err) if !success
+        File.open(filename, 'w') do |f|
+          out.each_line do |setting|
+            f.write "ALTER DATABASE #{db_name} SET #{setting}" unless setting.gsub(/\s+/, '').empty?
+          end
+        end
+      end
+    end
+
     def dump_structure(db_name, filename, options = {})
       arguments = [
         '--schema-only',
@@ -223,7 +248,7 @@ module Prodder
           end
 
           tmp_sql << " CONNECTION LIMIT #{role['rolconnlimit']}" unless role['rolconnlimit'].eql?("-1")
-          tmp_sql << " VALID UNTIL #{role['rolvaliduntil']}" unless role['rolvaliduntil'].nil?
+          tmp_sql << " VALID UNTIL '#{role['rolvaliduntil']}'" unless role['rolvaliduntil'].nil?
           tmp_sql << ";\n"
           tmp_sql << "COMMENT ON ROLE \"#{role['rolname']}\" IS '#{role['rolcomment']}';\n" unless role['rolcomment'].nil?
           rolalter_sql << "SELECT * FROM alter_role('#{role['rolname']}', $$#{tmp_sql}$$);\n"

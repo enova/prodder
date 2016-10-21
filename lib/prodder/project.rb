@@ -31,6 +31,9 @@ module Prodder
       pg.dump_structure db_credentials['name'], structure_file_name,
                         exclude_tables: excluded_tables, exclude_schemas: excluded_schemas
 
+      FileUtils.mkdir_p File.dirname(settings_file_name)
+      pg.dump_settings db_credentials['name'], settings_file_name
+
       FileUtils.mkdir_p File.dirname(seed_file_name)
       pg.dump_tables db_credentials['name'], seed_tables, seed_file_name
 
@@ -50,7 +53,7 @@ module Prodder
 
       if dump_permissions?
         FileUtils.mkdir_p File.dirname(permissions_file_name)
-        pg.dump_permissions db_credentials['name'], permissions_file_name, included_users: included_users, 
+        pg.dump_permissions db_credentials['name'], permissions_file_name, included_users: included_users,
                             exclude_tables: excluded_tables, exclude_schemas: excluded_schemas
 
       end
@@ -61,6 +64,8 @@ module Prodder
       git.add structure_file_name
       git.add seed_file_name
       git.add quality_check_file_name if separate_quality_checks?
+      git.add permissions_file_name if dump_permissions?
+      git.add settings_file_name
       git.commit "Auto-commit by prodder", @defn['git']['author']
     end
 
@@ -97,6 +102,10 @@ module Prodder
       File.join workspace, @defn['structure_file']
     end
 
+    def settings_file_name
+      File.join workspace, 'db/settings.sql'
+    end
+
     def seed_file_name
       File.join workspace, @defn['seed_file']
     end
@@ -114,7 +123,7 @@ module Prodder
     end
 
     def dump_permissions?
-      @defn.key?('permissions') && permissions.key?('file') 
+      @defn.key?('permissions') && permissions.key?('file')
     end
 
     def excluded_schemas
