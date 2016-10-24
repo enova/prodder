@@ -13,6 +13,10 @@ Given 'I add an index to table "$table" on column "$column" in the "$project" pr
   Prodder::PG.new.psql "prodder__#{project}_prod", "CREATE INDEX test_index ON #{table} (#{column});"
 end
 
+Given 'I add a customer parameter "$parameter" with value "$value" in the "$project" project\'s database' do |parameter, value, project|
+  Prodder::PG.new.psql "prodder__#{project}_prod", "ALTER DATABASE prodder__#{project}_prod SET #{parameter} = #{value};"
+end
+
 Given 'I add a foreign key from table "$table1" and column "$column1" to table "$table2" and column "$column2" in the "$project" project\'s database' do |table1, column1, table2, column2, project|
   Prodder::PG.new.psql "prodder__#{project}_prod", "ALTER TABLE #{table1} ADD CONSTRAINT fk_authors FOREIGN KEY (#{column1}) REFERENCES #{table2} (#{column2});"
 end
@@ -49,6 +53,11 @@ When 'I add a "$name" schema to the "$project" project\'s database' do |name, pr
   pg.psql "prodder__#{project}_prod", "CREATE SCHEMA #{name} AUTHORIZATION prodder CREATE TABLE #{name}.providers ( id SERIAL PRIMARY KEY );"
 end
 
+When 'I grant all permissions on table "$table" in the "$project" database to "$role"' do |table, project, role|
+  pg = Prodder::PG.new
+  pg.psql "prodder__#{project}_prod", "GRANT ALL ON #{table} TO #{role}"
+end
+
 Then 'the output should contain the example config contents' do
   assert_partial_output Prodder::Config.example_contents, all_output
 end
@@ -72,7 +81,7 @@ Given(/a prodder config in "([^"]*)" with projects?: (.*)/) do |filename, projec
       structure_file: db/structure.sql
       seed_file: db/seeds.sql
       quality_check_file: db/quality_checks.sql
-      permissions: 
+      permissions:
         file: db/permissions.sql
         included_users: prodder, include_this
       git:
