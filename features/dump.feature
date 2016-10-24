@@ -41,6 +41,11 @@ Feature: prodder dump
   #TODO: Not sure how to test this
   Scenario: Exhaustively test ACL
 
+  Scenario: Valid until option is quoted
+    When I run `prodder dump -c prodder.yml`
+    Then the exit status should be 0
+    And  the workspace file "blog/db/permissions.sql" should match /VALID UNTIL '.*'/
+
   Scenario: Exclude passwords from permissions dump
     When I run `prodder dump -c prodder.yml`
     Then the exit status should be 0
