@@ -13,8 +13,8 @@ Given 'I add an index to table "$table" on column "$column" in the "$project" pr
   Prodder::PG.new.psql "prodder__#{project}_prod", "CREATE INDEX test_index ON #{table} (#{column});"
 end
 
-Given 'I add a customer parameter "$parameter" with value "$value" in the "$project" project\'s database' do |parameter, value, project|
-  Prodder::PG.new.psql "prodder__#{project}_prod", "ALTER DATABASE prodder__#{project}_prod SET #{parameter} = #{value};"
+Given 'I add a custom parameter "$parameter" with value "$value" in the "$project" project\'s database' do |parameter, value, project|
+  Prodder::PG.new.psql "prodder__#{project}_prod", "ALTER DATABASE prodder__#{project}_prod SET #{parameter} = '#{value}';"
 end
 
 Given 'I add a foreign key from table "$table1" and column "$column1" to table "$table2" and column "$column2" in the "$project" project\'s database' do |table1, column1, table2, column2, project|
