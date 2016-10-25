@@ -52,6 +52,8 @@ module Prodder
       SQL
 
       arguments = [
+        '--host', credentials['host'],
+        '--username', credentials['user'],
         '-t',
         '-c', sql
       ]
@@ -60,7 +62,12 @@ module Prodder
         raise PGDumpError.new(err) if !success
         File.open(filename, 'w') do |f|
           out.each_line do |setting|
-            f.write "ALTER DATABASE #{db_name} SET #{setting}" unless setting.gsub(/\s+/, '').empty?
+            unless setting.gsub(/\s+/, '').empty?
+              setting.chomp!
+              setting += "''" if setting.match /.*=$/
+              # using the magic of psql variables through :DBNAME
+              f.puts "ALTER DATABASE :DBNAME SET #{setting};"
+            end
           end
         end
       end
