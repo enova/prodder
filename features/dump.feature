@@ -122,12 +122,22 @@ Feature: prodder dump
   Scenario: Verify settings file contents
     Given I add a custom parameter "c.p" with value "v" in the "blog" project's database
     When  I run `prodder dump -c prodder.yml`
-    Then the workspace file "blog/db/settings.sql" should match /ALTER DATABASE :DBNAME SET  c.p=v;/
+    Then the workspace file "blog/db/settings.sql" should match /ALTER DATABASE :DBNAME SET c.p=v;/
 
   Scenario: Verify empty db setting is quoted
     Given I add a custom parameter "empty.setting" with value "" in the "blog" project's database
     When  I run `prodder dump -c prodder.yml`
-    Then the workspace file "blog/db/settings.sql" should match /ALTER DATABASE :DBNAME SET  empty.setting='';/
+    Then the workspace file "blog/db/settings.sql" should match /ALTER DATABASE :DBNAME SET empty.setting='';/
+
+  Scenario: Verify whitespace db setting is quoted
+    Given I add a custom parameter "whitespace.setting" with value " " in the "blog" project's database
+    When  I run `prodder dump -c prodder.yml`
+    Then the workspace file "blog/db/settings.sql" should match /ALTER DATABASE :DBNAME SET whitespace.setting='';/
+
+  Scenario: Verify db settings are chomped
+    Given I add a custom parameter "k.v" with value "z" in the "blog" project's database
+    When  I run `prodder dump -c prodder.yml`
+    Then the workspace file "blog/db/settings.sql" should not match /^\s*$/
 
   Scenario: Exclude specified schemas from structure dump
     Given the prodder config in "prodder.yml" excludes the schema "ads" from the dump of "blog"

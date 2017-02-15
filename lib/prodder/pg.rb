@@ -62,9 +62,10 @@ module Prodder
         raise PGDumpError.new(err) if !success
         File.open(filename, 'w') do |f|
           out.each_line do |setting|
-            unless setting.gsub(/\s+/, '').empty?
+            setting.gsub!(/\s+/, '')
+            unless setting.empty?
               setting.chomp!
-              setting += "''" if setting.match /.*=$/
+              setting += "''" if setting.match(/=$/)
               # using the magic of psql variables through :DBNAME
               f.puts "ALTER DATABASE :DBNAME SET #{setting};"
             end
