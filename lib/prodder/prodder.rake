@@ -169,6 +169,7 @@ namespace :db do
       ActiveRecord::Tasks::DatabaseTasks.create_current
       ActiveRecord::Base.configurations.each do |env, config|
         if environments.include?(env) && config["migration_user"] && config['database']
+          set_psql_env config
           `psql --no-psqlrc --command "ALTER DATABASE #{config['database']} OWNER TO #{config['migration_user']}" #{Shellwords.escape(config['database'])}`
         end
       end
@@ -181,6 +182,7 @@ namespace :db do
         ActiveRecord::Tasks::DatabaseTasks.create_all
         ActiveRecord::Base.configurations.each do |env, config|
           if config["migration_user"] && config['database']
+            set_psql_env config
             `psql --no-psqlrc --command "ALTER DATABASE #{config['database']} OWNER TO #{config['migration_user']}" #{Shellwords.escape(config['database'])}`
           end
         end
