@@ -42,8 +42,8 @@ module Prodder
     end
 
     def dump_settings(db_name, filename)
-      sql = <<-SQL
-        select unnest(setconfig)
+      db_settings = pg_conn(db_name) { |conn| conn.exec(<<-SQL).map { |setting| setting['config'] } }
+        select unnest(setconfig) as config
         from pg_catalog.pg_db_role_setting
         join pg_database on pg_database.oid = setdatabase
         -- 0 = default, for all users
@@ -51,24 +51,19 @@ module Prodder
         and datname = '#{db_name}'
       SQL
 
-      arguments = [
-        '--host', credentials['host'],
-        '--username', credentials['user'],
-        '-t',
-        '-c', sql
-      ]
+      File.open(filename, 'w') do |f|
+        db_settings.each do |setting|
+          # wipe out all spaces
+          setting.gsub!(/\s+/, '')
 
-      run ['psql', *arguments.push(db_name)] do |out, err, success|
-        raise PGDumpError.new(err) if !success
-        File.open(filename, 'w') do |f|
-          out.each_line do |setting|
-            setting.gsub!(/\s+/, '')
-            unless setting.empty?
-              setting.chomp!
-              setting += "''" if setting.match(/=$/)
-              # using the magic of psql variables through :DBNAME
-              f.puts "ALTER DATABASE :DBNAME SET #{setting};"
-            end
+          # if the setting is empty, ignore it
+          unless setting.empty?
+            # else, drop carriage returns/new lines
+            setting.chomp!
+            # and append an empty string if the setting was being assigned a value of nothing
+            setting += "''" if setting.match(/=$/)
+            # using the magic of psql variables through :DBNAME
+            f.puts "ALTER DATABASE :DBNAME SET #{setting};"
           end
         end
       end
