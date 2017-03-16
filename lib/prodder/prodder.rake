@@ -1,3 +1,5 @@
+require 'shellwords'
+
 module Prodder
   # The list of default rake tasks which prodder will be removing or replacing.
   # @see databases.rake (currently at lib/active_record/railties/databases.rake)
@@ -212,71 +214,77 @@ namespace :db do
 
   desc "Load initial seeds from db/seeds.sql"
   task :seed => dependencies do
-    if File.exist?('db/seeds.sql')
-      config = ActiveRecord::Base.configurations[ENV['RAILS_ENV'] || Rails.env]
-      config["username"] = config["superuser"] if config["superuser"] && File.exist?('db/permissions.sql')
-      set_psql_env config
-      puts "Loading db/seeds.sql into database '#{config['database']}'"
-      `psql --no-psqlrc -f db/seeds.sql #{Shellwords.escape(config['database'])}`
-      raise 'Error loading db/seeds.sql' if $?.exitstatus != 0
-    else
+    unless File.exist?('db/seeds.sql')
       puts 'db/seeds.sql not found: no seeds to load.'
+      return
     end
+
+    config = ActiveRecord::Base.configurations[ENV['RAILS_ENV'] || Rails.env]
+    config["username"] = config["superuser"] if config["superuser"] && File.exist?('db/permissions.sql')
+    set_psql_env config
+    puts "Loading db/seeds.sql into database '#{config['database']}'"
+    `psql --no-psqlrc -f db/seeds.sql #{Shellwords.escape(config['database'])}`
+    raise 'Error loading db/seeds.sql' if $?.exitstatus != 0
   end
 
   desc "Load quality_checks (indexes, triggers, foreign keys) from db/quality_checks.sql"
   task :quality_check => dependencies do
-    if File.exist?('db/quality_checks.sql')
-      config = ActiveRecord::Base.configurations[ENV['RAILS_ENV'] || Rails.env]
-      config["username"] = config["superuser"] if config["superuser"] && File.exist?('db/permissions.sql')
-      set_psql_env config
-      puts "Loading db/quality_checks.sql into database '#{config['database']}'"
-      `psql --no-psqlrc -f db/quality_checks.sql #{Shellwords.escape(config['database'])}`
-      raise 'Error loading db/quality_checks.sql' if $?.exitstatus != 0
-    else
+    unless File.exist?('db/quality_checks.sql')
       puts 'db/quality_checks.sql not found: no quality_checks to load.'
+      return
     end
+
+    config = ActiveRecord::Base.configurations[ENV['RAILS_ENV'] || Rails.env]
+    config["username"] = config["superuser"] if config["superuser"] && File.exist?('db/permissions.sql')
+    set_psql_env config
+    puts "Loading db/quality_checks.sql into database '#{config['database']}'"
+    `psql --no-psqlrc -f db/quality_checks.sql #{Shellwords.escape(config['database'])}`
+    raise 'Error loading db/quality_checks.sql' if $?.exitstatus != 0
   end
 
   desc "Load permissions (DB object level access control, group role memberships) from db/permissions.sql"
   task :permission => dependencies do
-    if File.exist?('db/permissions.sql')
-      config = ActiveRecord::Base.configurations[ENV['RAILS_ENV'] || Rails.env]
-      config["username"] = config["superuser"] if config["superuser"]
-      set_psql_env config
-      puts "Loading db/permissions.sql into database '#{config['database']}'"
-      disconnect
-      ActiveRecord::Base.establish_connection((ENV['RAILS_ENV'] || Rails.env).intern)
-      is_super = ActiveRecord::Base.connection.execute(<<-SQL).first['is_super']
-        select 1 as is_super from pg_roles where rolname = '#{config['username']}' and rolsuper
-      SQL
-      unless is_super
-        puts "Restoring permissions as config/database.yml non-superuser: #{config['username']}, expect errors, or rerun after granting superuser"
-      end
-      `psql --no-psqlrc -f db/permissions.sql #{Shellwords.escape(config['database'])}`
-
-      raise 'Error loading db/permissions.sql' if $?.exitstatus != 0
-    else
+    unless File.exist?('db/permissions.sql')
       puts 'db/permissions.sql not found: no permissions to load.'
+      return
     end
+
+    config = ActiveRecord::Base.configurations[ENV['RAILS_ENV'] || Rails.env]
+    config["username"] = config["superuser"] if config["superuser"]
+    set_psql_env config
+    puts "Loading db/permissions.sql into database '#{config['database']}'"
+    disconnect
+    ActiveRecord::Base.establish_connection((ENV['RAILS_ENV'] || Rails.env).intern)
+    result = ActiveRecord::Base.connection.execute(<<-SQL).first
+      select 1 as is_super from pg_roles where rolname = '#{config['username']}' and rolsuper
+    SQL
+    unless result && result['is_super']
+      puts "Restoring permissions as config/database.yml non-superuser: '#{config['username']}', expect errors, or rerun after granting superuser"
+    end
+    `psql --no-psqlrc -f db/permissions.sql #{Shellwords.escape(config['database'])}`
+    raise 'Error loading db/permissions.sql' if $?.exitstatus != 0
   end
 
   desc "Load database settings"
   task :settings => dependencies do
+    unless File.exist?('db/settings.sql')
+      puts 'db/settings.sql not found: no settings to load.'
+      return
+    end
+
     config = ActiveRecord::Base.configurations[ENV['RAILS_ENV'] || Rails.env]
     config["username"] = config["superuser"] if config["superuser"] && File.exist?('db/permissions.sql')
     set_psql_env config
     puts "Loading db/settings.sql into database '#{config['database']}'"
     disconnect
     ActiveRecord::Base.establish_connection((ENV['RAILS_ENV'] || Rails.env).intern)
-    is_super = ActiveRecord::Base.connection.execute(<<-SQL).first['is_super']
+    result = ActiveRecord::Base.connection.execute(<<-SQL).first
       select 1 as is_super from pg_roles where rolname = '#{config['username']}' and rolsuper
     SQL
-    unless is_super
-      puts "Restoring settings as config/database.yml non-superuser: #{config['username']}, expect errors, or rerun after granting superuser"
+    unless result && result['is_super']
+      puts "Restoring settings as config/database.yml non-superuser: '#{config['username']}', expect errors, or rerun after granting superuser"
     end
     `psql --no-psqlrc -f db/settings.sql #{Shellwords.escape(config['database'])}`
-
     raise 'Error loading db/settings.sql' if $?.exitstatus != 0
   end
 
