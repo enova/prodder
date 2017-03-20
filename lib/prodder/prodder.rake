@@ -98,7 +98,7 @@ namespace :db do
       begin
         puts ActiveRecord::Tasks::DatabaseTasks.collation_current
       rescue NoMethodError
-        $stderr.puts 'Sorry, your database adapter is not supported yet. Feel free to submit a patch.'
+        $stderr.puts 'error: Sorry, your database adapter is not supported yet. Feel free to submit a patch.'
       end
     end
   end
@@ -253,7 +253,7 @@ namespace :db do
       select 1 as is_super from pg_roles where rolname = '#{config['username']}' and rolsuper
       SQL
       unless result && result['is_super']
-        puts "Restoring permissions as config/database.yml non-superuser: '#{config['username']}', expect errors, or rerun after granting superuser"
+        puts "warning: Restoring permissions as config/database.yml non-superuser: '#{config['username']}', expect errors, or rerun after granting superuser"
       end
       `psql --no-psqlrc -f db/permissions.sql #{Shellwords.escape(config['database'])}`
       raise 'Error loading db/permissions.sql' if $?.exitstatus != 0
@@ -275,7 +275,7 @@ namespace :db do
       select 1 as is_super from pg_roles where rolname = '#{config['username']}' and rolsuper
       SQL
       unless result && result['is_super']
-        puts "Restoring settings as config/database.yml non-superuser: '#{config['username']}', expect errors, or rerun after granting superuser"
+        puts "warning: Restoring settings as config/database.yml non-superuser: '#{config['username']}', expect errors, or rerun after granting superuser"
       end
       `psql --no-psqlrc -f db/settings.sql #{Shellwords.escape(config['database'])}`
       raise 'Error loading db/settings.sql' if $?.exitstatus != 0
