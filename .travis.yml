@@ -28,17 +28,10 @@ before_install:
   - psql -U postgres -d postgres -c 'select setting from pg_settings where name = $m$server_version$m$;'
 
 script:
-  - echo "===================================================="
-  - echo "PG_VERSION|$PG_VERSION|"
-  - echo "===================================================="
   - psql --version
-  - echo "===================================================="
   - pg_lsclusters
-  - echo "===================================================="
   - psql -U postgres -d postgres -c 'select 1;'
-  - echo "===================================================="
   - ls -al `which pg_dump`
-  - echo "===================================================="
   - bundle exec rake spec
   - bundle exec rake cucumber
 
