@@ -29,37 +29,37 @@ end
 Then(/^(\d+) commits? by "([^"]+)" should be in the "([^"]+)" repository$/) do |n, author, project|
   in_workspace(project) do
     authors = `git log --pretty='format:%an'`.split("\n")
-    authors.grep(/#{author}/).size.should == Integer(n)
+    expect(authors.grep(/#{author}/).size).to eq Integer(n)
   end
 end
 
 Then 'the file "$filename" should now be tracked' do |filename|
   in_current_dir do
     git = Prodder::Git.new(File.expand_path("prodder-workspace/blog"), nil)
-    git.should be_tracked(filename)
+    expect(git).to be_tracked(filename)
   end
 end
 
 Then 'the latest commit should have changed "$file" to contain "$content"' do |filename, content|
   in_workspace('blog') do
     changed = `git show --name-only HEAD | grep #{filename}`.split("\n")
-    changed.should_not be_empty
+    expect(changed).to_not be_empty
 
     diff = `git show HEAD | grep '#{content}'`.split("\n")
-    diff.should_not be_empty
+    expect(diff).to_not be_empty
   end
 end
 
 Then 'the latest commit should not have changed "$filename"' do |filename|
   in_workspace('blog') do
     changed = `git show --name-only HEAD | grep #{filename}`.split("\n")
-    changed.should be_empty
+    expect(changed).to be_empty
   end
 end
 
 Then 'the new commit should be in the remote repository' do
   in_current_dir do
     latest = `git --git-dir="./repos/blog.git" log | grep prodder`.split("\n")
-    latest.should_not be_empty
+    expect(latest).to_not be_empty
   end
 end
