@@ -2,7 +2,7 @@ Feature: Basic CLI usage
 
   Scenario: prodder help
     When I run `prodder help`
-    Then the output should contain "Tasks:"
+    Then the output should contain "Commands:"
 
   Scenario: No config file supplied
     When I run `prodder`
