@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Prodder::Config, 'linting' do
+RSpec.describe Prodder::Config, 'linting' do
   let(:valid_config) { YAML.load Prodder::Config.example_contents }
 
   def config_without(path)
@@ -21,7 +21,6 @@ describe Prodder::Config, 'linting' do
   end
 
   context 'missing required key:' do
-
     %w[structure_file
        seed_file
 
@@ -35,15 +34,14 @@ describe Prodder::Config, 'linting' do
        git/author
     ].each do |path|
       specify path do
-        errors_for(config_without "blog/#{path}").should ==
-          ["Missing required configuration key: blog/#{path}"]
+        expect(errors_for(config_without "blog/#{path}")).to eq ["Missing required configuration key: blog/#{path}"]
       end
     end
   end
 
   context 'optional keys:' do
     specify 'db/password' do
-      errors_for(config_without 'blog/db/password').should be_empty
+      expect(errors_for(config_without 'blog/db/password')).to be_empty
     end
   end
 
@@ -53,12 +51,12 @@ describe Prodder::Config, 'linting' do
       expect {
         config.lint!
       }.to raise_error(Prodder::Config::LintError) { |ex|
-        ex.errors.should == ['Missing required configuration key: blog/db/name']
+        expect(ex.errors).to eq ['Missing required configuration key: blog/db/name']
       }
     end
 
     it 'returns an empty collection if there are no errors' do
-      Prodder::Config.new(valid_config).lint!.should == []
+      expect(Prodder::Config.new(valid_config).lint!).to eq []
     end
   end
 end
