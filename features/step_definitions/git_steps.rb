@@ -5,8 +5,10 @@ Given 'a "$project" git repository' do |project|
   end
 
   run_simple "mkdir -p repos"
-  run_simple "chmod -R a+w repos/#{project}.git" if File.exist? File.join(current_dir, "repos", "#{project}.git")
-  remove_dir "repos/#{project}.git"
+  if File.exist? File.join(current_dir, "repos", "#{project}.git")
+    run_simple "chmod -R a+w repos/#{project}.git"
+    run_simple "rm -rf repos/#{project}.git"
+  end
   run_simple "cp -pR #{fixture_repo} repos/#{project}.git"
 end
 

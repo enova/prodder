@@ -16,7 +16,7 @@ Feature: prodder push
     Given the "blog" git repository does not allow pushing to it
     When I run `prodder push -c prodder.yml`
     Then the exit status should be 1
-    And the output should contain "insufficient permission"
+    And the output should contain "remote rejected"
 
   Scenario: Push fails due to non-fast-forward
     Given a new commit is already in the "blog" git repository
