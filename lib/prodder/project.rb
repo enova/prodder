@@ -45,7 +45,9 @@ module Prodder
         contents = File.readlines(structure_file_name)
         rgx = /^\-\- .* Type: INDEX; |^\-\- .* Type: TRIGGER; |^\-\- .* Type: FK CONSTRAINT; /
         structure, *quality = contents.slice_before(rgx).to_a
-        quality_checks = structure.grep(/SET search_path/).last + quality.join
+        # the first search path setting for constraints gets left over
+        # in the structure, so we need to *attempt* to grab that
+        quality_checks = (structure.grep(/SET search_path/).last || '') + quality.join
 
         File.open(quality_check_file_name, 'w') { |f| f.write(quality_checks) }
         File.open(structure_file_name, 'w') { |f| f.write(structure.join) }
