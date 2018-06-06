@@ -9,14 +9,11 @@ env:
   matrix:
     - PG_VERSION=9.4
     - PG_VERSION=9.5
+    - PG_VERSION=9.6
 
 before_install:
   - git config --global user.name "Prodder In Travis-CI"
   - git config --global user.email "prodder@example.com"
-  # install postgresql v9.5
-  - if [[ "$PG_VERSION" = "9.5" ]]; then echo "installing pg9.5"; sudo /etc/init.d/postgresql stop; sudo apt-get -y autoremove; sudo apt-key adv --keyserver keys.gnupg.net --recv-keys 7FCC7D46ACCC4CF8; sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ precise-pgdg main 9.5" >> /etc/apt/sources.list.d/postgresql.list'; sudo apt-get update; sudo apt-get -y install postgresql-9.5; sudo cp /etc/postgresql/9.4/main/pg_hba.conf /etc/postgresql/9.5/main/pg_hba.conf; sudo sed -i 's/5433/5432/' /etc/postgresql/9.5/main/postgresql.conf; sudo /etc/init.d/postgresql restart; else echo "not installing pg9.5"; fi
-  # setup travis user
-  - if [[ "$PG_VERSION" = "9.5" ]]; then echo "setting up users for pg9.5"; PGUSER=postgres createuser --superuser travis || echo role travis already exists.; fi
   # setup pg_dump
   - sudo ln -sfn /usr/lib/postgresql/$PG_VERSION/bin/pg_dump /usr/bin/pg_dump
   # start up the specific version of PG
