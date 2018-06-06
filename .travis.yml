@@ -4,11 +4,9 @@ cache: bundler
 rvm:
   - 2.4.2
   - 2.3.5
-  - 2.2.8
 
 env:
   matrix:
-    - PG_VERSION=9.3
     - PG_VERSION=9.4
     - PG_VERSION=9.5
 
