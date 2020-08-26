@@ -362,12 +362,19 @@ namespace :db do
 
   def as(user, opts = {}, &block)
     if File.exist?('db/permissions.sql')
-      config, config_was = ActiveRecord::Base.configurations.deep_dup, ActiveRecord::Base.configurations.deep_dup
+      config, config_was = ActiveRecord::Base.configurations.deep_dup.to_h, ActiveRecord::Base.configurations.deep_dup
       in_env = Array(opts[:in]) || config.keys
       if config.all? { |env, config_hash| in_env.include?(env) ? config_hash[user] : true }
         disconnect
         config.each { |env, config_hash| config_hash["username"] = config_hash[user] if in_env.include?(env) }
-        ActiveRecord::Base.configurations = config
+
+        ActiveRecord::Base.configurations = if ActiveRecord::Base.configurations.kind_of?(Hash)
+           config
+        else
+          # `ActiveRecord::Base.configurations` in Rails 6 now returns an object instead of a hash
+          # set the values accondingly
+          ActiveRecord::DatabaseConfigurations.new(config)
+        end
       end
     else
       puts "No permissions file (db/permissions.sql) found, running everything in context of user"
