@@ -362,7 +362,8 @@ namespace :db do
 
   def as(user, opts = {}, &block)
     if File.exist?('db/permissions.sql')
-      config, config_was = ActiveRecord::Base.configurations.deep_dup, ActiveRecord::Base.configurations.deep_dup
+      # `ActiveRecord::Base.configurations` in Rails 6 now returns an object instead of a hash
+      config, config_was = ActiveRecord::Base.configurations.deep_dup.to_h, ActiveRecord::Base.configurations.deep_dup
       in_env = Array(opts[:in]) || config.keys
       if config.all? { |env, config_hash| in_env.include?(env) ? config_hash[user] : true }
         disconnect
