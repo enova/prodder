@@ -1,18 +1,13 @@
 language: ruby
 cache: bundler
 
-rvm: # stable versions of ruby as of August
-  - 2.4.10
+rvm:
   - 2.5.8
-  - 2.6.6
   - 2.7.1
 
 env:
   matrix:
-    - PG_VERSION=9.6
-    - PG_VERSION=10
     - PG_VERSION=11
-    - PG_VERSION=12
 
 before_install:
   - git config --global user.name "Prodder In Travis-CI"
