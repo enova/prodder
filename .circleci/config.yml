@@ -1,6 +1,6 @@
 version: 2.0
 
-ruby_25_pg_11: &ruby_258_pg_11
+ruby_25_pg_11: &ruby_25_pg_11
   - image: ruby:2.5
   - image: postgres:11.9
     environment:
@@ -41,15 +41,14 @@ master_ignore_filter: &master_ignore_filter
       ignore: master
 
 jobs:
-  ruby_25_pg_11 rspec:
+  ruby_25_pg_11_rspec:
     docker: *ruby_25_pg_11
     steps:
       - *setup_git_user
       - *setup_db
-      - *install_gems
       - run: bundle exec rake spec
 
 workflows:
   ruby_25_pg_11_tests:
     jobs:
-      - ruby_25_pg_11
+      - ruby_25_pg_11_rspec
