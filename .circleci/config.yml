@@ -19,10 +19,10 @@ setup_db: &setup_db
   run:
     name: Setup DB
     command: |
-      sudo ln -sfn /usr/lib/postgresql/$PG_VERSION/bin/pg_dump /usr/bin/pg_dump
-      sudo -E sh -c 'service postgresql stop'
+      ln -sfn /usr/lib/postgresql/$PG_VERSION/bin/pg_dump /usr/bin/pg_dump
+      service postgresql stop
       sleep 5s
-      sudo -E sh -c 'service postgresql start $PG_VERSION'
+      service postgresql start $PG_VERSION
       psql -U postgres -d postgres -c 'select setting from pg_settings where name = $m$server_version$m$;'
       psql --version
       pg_lsclusters
