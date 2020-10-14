@@ -31,7 +31,6 @@ setup_db: &setup_db
       psql -U postgres -d postgres -c 'select setting from pg_settings where name = $m$server_version$m$;'
       psql --version
       pg_lsclusters
-      psql -U postgres -d postgres -c 'select 1;'
 
 master_only_filter: &master_only_filter
   filters:
