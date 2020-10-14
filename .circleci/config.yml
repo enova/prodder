@@ -15,6 +15,14 @@ setup_git_user: &setup_git_user
       git config --global user.name "Prodder In Travis-CI"
       git config --global user.email "prodder@example.com"
 
+install_libs: &install_libs
+  run:
+    name: Install linux libraries
+    command: |
+      apt-get update
+      apt-get install -y libpq-dev libpq5 libmagic-dev postgresql-client
+      gem install bundler:1.17.3
+
 setup_db: &setup_db
   run:
     name: Setup DB
@@ -41,6 +49,7 @@ jobs:
     docker: *ruby_25_pg_11
     steps:
       - *setup_git_user
+      - *install_libs
       - *setup_db
       - run: bundle exec rake spec
 
