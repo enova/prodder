@@ -52,7 +52,6 @@ jobs:
       - checkout
       - *setup_git_user
       - *install_libs
-      - *setup_db
       - run: bundle exec rake spec
 
 workflows:
