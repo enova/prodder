@@ -47,7 +47,7 @@ master_ignore_filter: &master_ignore_filter
 
 jobs:
   ruby_25_pg_11_rspec:
-    docker: *ruby_25_pg_11
+    docker: *ruby_25
     steps:
       - checkout
       - *setup_git_user
