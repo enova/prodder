@@ -3,10 +3,9 @@ version: 2.1
 ruby_25_pg_11: &ruby_25_pg_11
   - image: ruby:2.5
     environment:
-      PG_VERSION: "11.9"
+      PG_VERSION: "11"
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres_password
-  - image: circleci/postgres:11.9
+  - image: circleci/postgres:11-alpine
 
 setup_git_user: &setup_git_user
   run:
