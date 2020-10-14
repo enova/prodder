@@ -2,11 +2,11 @@ version: 2.1
 
 ruby_25_pg_11: &ruby_25_pg_11
   - image: ruby:2.5
-  - image: postgres:11.9
     environment:
       PG_VERSION: "11.9"
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres_password
+  - image: circleci/postgres:11-alpine
 
 setup_git_user: &setup_git_user
   run:
@@ -20,14 +20,11 @@ setup_db: &setup_db
     name: Setup DB
     command: |
       ln -sfn /usr/lib/postgresql/$PG_VERSION/bin/pg_dump /usr/bin/pg_dump
-      service postgresql stop
-      sleep 5s
-      service postgresql start $PG_VERSION
+      ls -al `which pg_dump`
       psql -U postgres -d postgres -c 'select setting from pg_settings where name = $m$server_version$m$;'
       psql --version
       pg_lsclusters
       psql -U postgres -d postgres -c 'select 1;'
-      ls -al `which pg_dump`
 
 master_only_filter: &master_only_filter
   filters:
