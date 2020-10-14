@@ -1,15 +1,55 @@
-version: 2.1
-orbs:
-  ruby: circleci/ruby@0.1.2 
+version: 2.0
+
+ruby_25_pg_11: &ruby_258_pg_11
+  - image: ruby:2.5
+  - image: postgres:11.9
+    environment:
+      PG_VERSION: 11.9
+      POSTGRES_USER: postgres
+      RAILS_ENV: test
+      TZ: America/Chicago
+
+setup_git_user: &setup_git_user
+  run:
+    name: Setup Git User
+    command: |
+      git config --global user.name "Prodder In Travis-CI"
+      git config --global user.email "prodder@example.com"
+
+setup_db: &setup_db
+  run:
+    name: Setup DB
+    command: |
+      sudo ln -sfn /usr/lib/postgresql/$PG_VERSION/bin/pg_dump /usr/bin/pg_dump
+      sudo -E sh -c 'service postgresql stop'
+      sleep 5s
+      sudo -E sh -c 'service postgresql start $PG_VERSION'
+      psql -U postgres -d postgres -c 'select setting from pg_settings where name = $m$server_version$m$;'
+      psql --version
+      pg_lsclusters
+      psql -U postgres -d postgres -c 'select 1;'
+      ls -al `which pg_dump`
+
+master_only_filter: &master_only_filter
+  filters:
+    branches:
+      only: master
+
+master_ignore_filter: &master_ignore_filter
+  filters:
+    branches:
+      ignore: master
 
 jobs:
-  build:
-    docker:
-      - image: circleci/ruby:2.6.3-stretch-node
-    executor: ruby/default
+  ruby_25_pg_11 rspec:
+    docker: *ruby_25_pg_11
     steps:
-      - checkout
-      - run:
-          name: Which bundler?
-          command: bundle -v
-      - ruby/bundle-install
+      - *setup_git_user
+      - *setup_db
+      - *install_gems
+      - run: bundle exec rake spec
+
+workflows:
+  ruby_25_pg_11_tests:
+    jobs:
+      - ruby_25_pg_11
