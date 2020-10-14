@@ -148,3 +148,8 @@ Given 'the "$project" file "$filename" does not exist' do |project, filename|
   rescue Errno::ENOENT
   end
 end
+
+When 'I pry' do
+  require 'pry'
+  binding.pry
+end
