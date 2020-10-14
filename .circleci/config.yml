@@ -6,7 +6,7 @@ ruby_25_pg_11: &ruby_25_pg_11
       PG_VERSION: "11.9"
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres_password
-  - image: circleci/postgres:11-alpine
+  - image: circleci/postgres:11.9
 
 setup_git_user: &setup_git_user
   run:
@@ -48,6 +48,7 @@ jobs:
   ruby_25_pg_11_rspec:
     docker: *ruby_25_pg_11
     steps:
+      - checkout
       - *setup_git_user
       - *install_libs
       - *setup_db
