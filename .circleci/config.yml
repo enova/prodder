@@ -6,8 +6,7 @@ ruby_25_pg_11: &ruby_25_pg_11
     environment:
       PG_VERSION: "11.9"
       POSTGRES_USER: postgres
-      RAILS_ENV: test
-      TZ: America/Chicago
+      POSTGRES_PASSWORD: postgres_password
 
 setup_git_user: &setup_git_user
   run:
