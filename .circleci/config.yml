@@ -4,7 +4,7 @@ ruby_25: &ruby_25
   - image: ruby:2.5
     environment:
       PG_VERSION: "11.9"
-      POSTGRES_USER: root
+      POSTGRES_USER: postgres
 
 setup_git_user: &setup_git_user
   run:
