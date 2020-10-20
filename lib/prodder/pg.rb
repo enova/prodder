@@ -125,7 +125,6 @@ module Prodder
     ACL_REVOKE = /^REVOKE /
     DEFAULT_PRIVILEGES = /^ALTER DEFAULT PRIVILEGES /
     SET_OBJECT_OWNERSHIP = /.* OWNER TO /
-    SEARCH_PATH = /SET search_path = .*/
 
     def dump_db_access_control(db_name, user_list, options)
       perm_out_sql = ""
@@ -153,8 +152,7 @@ module Prodder
           if line.match(ACL_GRANT)           ||
              line.match(ACL_REVOKE)          ||
              line.match(DEFAULT_PRIVILEGES)  ||
-             line.match(SET_OBJECT_OWNERSHIP)||
-             line.match(SEARCH_PATH)
+             line.match(SET_OBJECT_OWNERSHIP)
 
             unless irrelevant_login_roles.include?(line.match(/ (\S*);$/)[1])
               perm_out_sql << line

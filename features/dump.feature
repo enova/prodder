@@ -6,11 +6,10 @@ Feature: prodder dump
   Scenario: Happy path: dump structure.sql, listed seed tables, quality_checks.sql, permissions.sql and settings.sql
     When I run `prodder dump -c prodder.yml`
     Then the exit status should be 0
-    And  the workspace file "blog/db/structure.sql" should match /CREATE TABLE posts/
-    And  the workspace file "blog/db/structure.sql" should match /CREATE TABLE authors/
-    And  the workspace file "blog/db/seeds.sql" should match /COPY posts/
-    And  the workspace file "blog/db/seeds.sql" should match /COPY authors/
-    And  the workspace file "blog/db/quality_checks.sql" should match /SET search_path/
+    And  the workspace file "blog/db/structure.sql" should match /CREATE TABLE public.posts/
+    And  the workspace file "blog/db/structure.sql" should match /CREATE TABLE public.authors/
+    And  the workspace file "blog/db/seeds.sql" should match /COPY public.posts/
+    And  the workspace file "blog/db/seeds.sql" should match /COPY public.authors/
     And  the workspace file "blog/db/quality_checks.sql" should match /CREATE TRIGGER /
     And  the workspace file "blog/db/permissions.sql" should match /GRANT /
     And  the workspace file "blog/db/settings.sql" should match /ALTER DATABASE /
@@ -123,6 +122,7 @@ Feature: prodder dump
     Given I add a custom parameter "c.p" with value "v" in the "blog" project's database
     When  I run `prodder dump -c prodder.yml`
     Then the workspace file "blog/db/settings.sql" should match /ALTER DATABASE :DBNAME SET c.p=v;/
+    And the workspace file "blog/db/settings.sql" should match /ALTER DATABASE :DBNAME SET search_path=foo,bar,public;/
 
   Scenario: Verify empty db setting is quoted
     Given I add a custom parameter "empty.setting" with value "" in the "blog" project's database
@@ -184,8 +184,8 @@ Feature: prodder dump
       """
     When I run `prodder dump -c prodder.yml`
     Then the exit status should be 0
-    And  the workspace file "blog/db/seeds.sql" should match /COPY posts/
-    But  the workspace file "blog/db/seeds.sql" should not match /COPY authors/
+    And  the workspace file "blog/db/seeds.sql" should match /COPY public.posts/
+    But  the workspace file "blog/db/seeds.sql" should not match /COPY public.authors/
 
   Scenario: YAML file listing seed tables does not exist
     Given the prodder config in "prodder.yml" says to read the "blog" seed tables from "db/seeds.yml"
