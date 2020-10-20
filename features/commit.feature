@@ -29,7 +29,7 @@ Feature: Commiting updated dumps to a project's repository
     And  I run `prodder dump -c prodder.yml`
     And  I run `prodder commit -c prodder.yml`
     And  2 commits by "prodder auto-commit" should be in the "blog" repository
-    And  the latest commit should have changed "db/structure.sql" to contain "CREATE TABLE linkbacks"
+    And  the latest commit should have changed "db/structure.sql" to contain "CREATE TABLE public.linkbacks"
     And  the latest commit should not have changed "db/seeds.sql"
     And  the latest commit should not have changed "db/quality_checks.sql"
 
@@ -52,7 +52,7 @@ Feature: Commiting updated dumps to a project's repository
     And  I run `prodder dump -c prodder.yml`
     And  I run `prodder commit -c prodder.yml`
     Then 2 commits by "prodder auto-commit" should be in the "blog" repository
-    And  the latest commit should have changed "db/structure.sql" to contain "CREATE TABLE captchas"
+    And  the latest commit should have changed "db/structure.sql" to contain "CREATE TABLE public.captchas"
     And  the latest commit should have changed "db/seeds.sql" to contain "Bob McBobbington"
     And  the latest commit should not have changed "db/quality_checks.sql"
 
@@ -64,6 +64,6 @@ Feature: Commiting updated dumps to a project's repository
     And  I run `prodder dump -c prodder.yml`
     And  I run `prodder commit -c prodder.yml`
     And  2 commits by "prodder auto-commit" should be in the "blog" repository
-    And  the latest commit should have changed "db/permissions.sql" to contain "GRANT ALL ON TABLE gotchas TO prodder"
+    And  the latest commit should have changed "db/permissions.sql" to contain "GRANT ALL ON TABLE public.gotchas TO prodder"
     And  the latest commit should not have changed "db/seeds.sql"
     And  the latest commit should not have changed "db/quality_checks.sql"

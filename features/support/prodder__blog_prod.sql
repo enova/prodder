@@ -1,4 +1,5 @@
 ALTER DATABASE prodder__blog_prod SET custom.parameter = 1;
+ALTER DATABASE prodder__blog_prod SET search_path TO foo, bar, public;
 
 CREATE TABLE authors (
   author_id serial primary key,
