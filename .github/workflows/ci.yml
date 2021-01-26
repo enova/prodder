@@ -60,8 +60,8 @@ jobs:
           sleep 5s
           psql -U postgres -d postgres -c "CREATE ROLE `whoami` SUPERUSER CREATEDB CREATEROLE INHERIT LOGIN REPLICATION BYPASSRLS"
           psql -U postgres -d postgres -c "\du"
-      # - name: Install Gems
-      #   run: bundle install
-      # - name: Run Cucumber tests
-      #   run: bundle exec rake cucumber
+      - name: Install Gems
+        run: bundle install
+      - name: Run Cucumber tests
+        run: bundle exec rake cucumber
 
