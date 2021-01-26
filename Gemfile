@@ -6,6 +6,7 @@ gem 'cocaine'
 gem 'benzo'
 
 group :development, :test do
+  gem 'activerecord', '~> 6.1'
   gem 'rake'
   gem 'pry'
   gem 'pry-remote'
