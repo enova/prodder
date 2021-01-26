@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  # rspec:
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     matrix:
+  #       ruby-version: [2.4.1, 2.7.2]
+  #   services:
+  #     postgres:
+  #       image: postgres
+  #       env:
+  #         POSTGRES_PASSWORD: postgres
+  #       options: >-
+  #         --health-cmd pg_isready
+  #         --health-interval 10s
+  #         --health-timeout 5s
+  #         --health-retries 5
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - name: Set up Ruby ${{ matrix.ruby-version }}
+  #       uses: ruby/setup-ruby@v1
+  #       with:
+  #         ruby-version: ${{ matrix.ruby-version }}
+  #     - name: Install Gems
+  #       run: bundle install
+  #     - name: Run Rspec tests
+  #       run: bundle exec rake spec
+  cucumber:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ruby-version: [2.4.1]
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Ruby ${{ matrix.ruby-version }}
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby-version }}
+      - name: configure postgres
+        run: |
+          sudo -E sh -c "sed -i 's/local   all             postgres                                peer/local   all             all                                trust/' /etc/postgresql/13/main/pg_hba.conf"
+          sudo cat /etc/postgresql/13/main/pg_hba.conf
+          sudo -E sh -c 'service postgresql restart'
+          sleep 5s
+          psql -U postgres -d postgres -c "CREATE ROLE `whoami` SUPERUSER CREATEDB CREATEROLE CREATEUSER INHERIT LOGIN"
+      - name: Install Gems
+        run: bundle install
+      - name: Run Cucumber tests
+        run: bundle exec rake cucumber
+
