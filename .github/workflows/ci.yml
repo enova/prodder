@@ -56,10 +56,9 @@ jobs:
       - name: configure postgres
         run: |
           sudo -E sh -c "sed -i 's/local   all             postgres                                peer/local   all             all                                trust/' /etc/postgresql/13/main/pg_hba.conf"
-          sudo cat /etc/postgresql/13/main/pg_hba.conf
           sudo -E sh -c 'service postgresql restart'
           sleep 5s
-          psql -U postgres -d postgres -c "CREATE ROLE `whoami` SUPERUSER CREATEDB CREATEROLE CREATEUSER INHERIT LOGIN"
+          psql -U postgres -d postgres -c "CREATE ROLE `whoami` SUPERUSER CREATEDB CREATEROLE INHERIT LOGIN REPLICATION BYPASSRLS"
       - name: Install Gems
         run: bundle install
       - name: Run Cucumber tests
