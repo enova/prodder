@@ -21,3 +21,6 @@ doc/
 nc.yml
 prodder-workspace/
 features/support/blog.git
+Gemfile.lock
+*.gem
+*.gemfile.lock

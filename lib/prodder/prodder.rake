@@ -55,7 +55,7 @@ namespace :db do
       version = ENV['VERSION'] ? ENV['VERSION'].to_i : nil
       raise 'VERSION is required' unless version
       as("migration_user", in: ENV['RAILS_ENV'] || Rails.env) do
-        ActiveRecord::Base.establish_connection((ENV['RAILS_ENV'] || Rails.env).intern)
+        ActiveRecord::Base.establish_connection((ENV['RAILS_ENV'] || Rails.env).to_sym)
         ActiveRecord::Migrator.run(:up, ActiveRecord::Migrator.migrations_paths, version)
       end
     end
@@ -64,7 +64,7 @@ namespace :db do
       version = ENV['VERSION'] ? ENV['VERSION'].to_i : nil
       raise 'VERSION is required - To go down one migration, run db:rollback' unless version
       as("migration_user", in: ENV['RAILS_ENV'] || Rails.env) do
-        ActiveRecord::Base.establish_connection((ENV['RAILS_ENV'] || Rails.env).intern)
+        ActiveRecord::Base.establish_connection((ENV['RAILS_ENV'] || Rails.env).to_sym)
         ActiveRecord::Migrator.run(:down, ActiveRecord::Migrator.migrations_paths, version)
       end
     end
@@ -107,7 +107,7 @@ namespace :db do
   task :rollback => [:environment].concat(dependencies) do
     step = ENV['STEP'] ? ENV['STEP'].to_i : 1
     as("migration_user", in: ENV['RAILS_ENV'] || Rails.env) do
-      ActiveRecord::Base.establish_connection((ENV['RAILS_ENV'] || Rails.env).intern)
+      ActiveRecord::Base.establish_connection((ENV['RAILS_ENV'] || Rails.env).to_sym)
       ActiveRecord::Migrator.rollback(ActiveRecord::Migrator.migrations_paths, step)
     end
   end
@@ -116,7 +116,7 @@ namespace :db do
   task :forward => [:environment].concat(dependencies) do
     step = ENV['STEP'] ? ENV['STEP'].to_i : 1
     as("migration_user", in: ENV['RAILS_ENV'] || Rails.env) do
-      ActiveRecord::Base.establish_connection((ENV['RAILS_ENV'] || Rails.env).intern)
+      ActiveRecord::Base.establish_connection((ENV['RAILS_ENV'] || Rails.env).to_sym)
       ActiveRecord::Migrator.forward(ActiveRecord::Migrator.migrations_paths, step)
     end
   end
@@ -124,14 +124,14 @@ namespace :db do
   desc 'Retrieves the current schema version number'
   task :version => [:environment].concat(dependencies) do
     as("migration_user", in: ENV['RAILS_ENV'] || Rails.env) do
-      ActiveRecord::Base.establish_connection((ENV['RAILS_ENV'] || Rails.env).intern)
+      ActiveRecord::Base.establish_connection((ENV['RAILS_ENV'] || Rails.env).to_sym)
       puts "Current version: #{ActiveRecord::Migrator.current_version}"
     end
   end
 
   task :abort_if_pending_migrations => [:environment].concat(dependencies) do
     as("migration_user", in: ENV['RAILS_ENV'] || Rails.env) do
-      ActiveRecord::Base.establish_connection((ENV['RAILS_ENV'] || Rails.env).intern)
+      ActiveRecord::Base.establish_connection((ENV['RAILS_ENV'] || Rails.env).to_sym)
       pending_migrations = ActiveRecord::Migrator.open(ActiveRecord::Migrator.migrations_paths).pending_migrations
 
       if pending_migrations.any?
@@ -169,10 +169,11 @@ namespace :db do
     end
     as("superuser", in: environments) do
       ActiveRecord::Tasks::DatabaseTasks.create_current
-      ActiveRecord::Base.configurations.each do |env, config|
-        if environments.include?(env) && config["migration_user"] && config['database']
+
+      configs_for(environments).each do |config|
+        if config[:migration_user] && config[:database]
           set_psql_env config
-          `psql --no-psqlrc --command "ALTER DATABASE #{config['database']} OWNER TO #{config['migration_user']}" #{Shellwords.escape(config['database'])}`
+          `psql --no-psqlrc --command "ALTER DATABASE #{config[:database]} OWNER TO #{config[:migration_user]}" #{Shellwords.escape(config[:database])}`
         end
       end
     end
@@ -182,10 +183,10 @@ namespace :db do
     task :all => dependencies do
       as("superuser") do
         ActiveRecord::Tasks::DatabaseTasks.create_all
-        ActiveRecord::Base.configurations.each do |env, config|
-          if config["migration_user"] && config['database']
+        configs_for.each do |config|
+          if config[:migration_user] && config[:database]
             set_psql_env config
-            `psql --no-psqlrc --command "ALTER DATABASE #{config['database']} OWNER TO #{config['migration_user']}" #{Shellwords.escape(config['database'])}`
+            `psql --no-psqlrc --command "ALTER DATABASE #{config[:database]} OWNER TO #{config[:migration_user]}" #{Shellwords.escape(config[:database])}`
           end
         end
       end
@@ -195,7 +196,7 @@ namespace :db do
   desc "Migrate the database (options: VERSION=x, VERBOSE=false, SCOPE=blog)."
   task :migrate => [:environment].concat(dependencies) do
     as("migration_user", in: ENV['RAILS_ENV'] || Rails.env) do
-      ActiveRecord::Base.establish_connection((ENV['RAILS_ENV'] || Rails.env).intern)
+      ActiveRecord::Base.establish_connection((ENV['RAILS_ENV'] || Rails.env).to_sym)
       ActiveRecord::Tasks::DatabaseTasks.migrate
     end
   end
@@ -206,8 +207,8 @@ namespace :db do
       as("superuser", in: ENV['RAILS_ENV'] || Rails.env) do
         config = ActiveRecord::Base.configurations[ENV['RAILS_ENV'] || Rails.env]
         set_psql_env config
-        puts "Loading db/structure.sql into database '#{config['database']}'"
-        `psql --no-psqlrc -f db/structure.sql #{Shellwords.escape(config['database'])}`
+        puts "Loading db/structure.sql into database '#{config[:database]}'"
+        `psql --no-psqlrc -f db/structure.sql #{Shellwords.escape(config[:database])}`
         raise 'Error loading db/structure.sql' if $?.exitstatus != 0
       end
     end
@@ -219,8 +220,8 @@ namespace :db do
       as("superuser", in: ENV['RAILS_ENV'] || Rails.env) do
         config = ActiveRecord::Base.configurations[ENV['RAILS_ENV'] || Rails.env]
         set_psql_env config
-        puts "Loading db/seeds.sql into database '#{config['database']}'"
-        `psql --no-psqlrc -f db/seeds.sql #{Shellwords.escape(config['database'])}`
+        puts "Loading db/seeds.sql into database '#{config[:database]}'"
+        `psql --no-psqlrc -f db/seeds.sql #{Shellwords.escape(config[:database])}`
         raise 'Error loading db/seeds.sql' if $?.exitstatus != 0
       end
     else
@@ -234,8 +235,8 @@ namespace :db do
       as("superuser", in: ENV['RAILS_ENV'] || Rails.env) do
         config = ActiveRecord::Base.configurations[ENV['RAILS_ENV'] || Rails.env]
         set_psql_env config
-        puts "Loading db/quality_checks.sql into database '#{config['database']}'"
-        `psql --no-psqlrc -f db/quality_checks.sql #{Shellwords.escape(config['database'])}`
+        puts "Loading db/quality_checks.sql into database '#{config[:database]}'"
+        `psql --no-psqlrc -f db/quality_checks.sql #{Shellwords.escape(config[:database])}`
         raise 'Error loading db/quality_checks.sql' if $?.exitstatus != 0
       end
     else
@@ -249,14 +250,14 @@ namespace :db do
       as("superuser", in: ENV['RAILS_ENV'] || Rails.env) do
         config = ActiveRecord::Base.configurations[ENV['RAILS_ENV'] || Rails.env]
         set_psql_env config
-        puts "Loading db/permissions.sql into database '#{config['database']}'"
+        puts "Loading db/permissions.sql into database '#{config[:database]}'"
         result = ActiveRecord::Base.connection.execute(<<-SQL).first
-          select 1 as is_super from pg_roles where rolname = '#{config['username']}' and rolsuper
+          select 1 as is_super from pg_roles where rolname = '#{config[:username]}' and rolsuper
         SQL
         unless result && result['is_super']
-          puts "warning: Restoring permissions as config/database.yml non-superuser: '#{config['username']}', expect errors, or rerun after granting superuser"
+          puts "warning: Restoring permissions as config/database.yml non-superuser: '#{config[:username]}', expect errors, or rerun after granting superuser"
         end
-        `psql --no-psqlrc -f db/permissions.sql #{Shellwords.escape(config['database'])}`
+        `psql --no-psqlrc -f db/permissions.sql #{Shellwords.escape(config[:database])}`
         raise 'Error loading db/permissions.sql' if $?.exitstatus != 0
       end
     else
@@ -270,14 +271,14 @@ namespace :db do
       as("superuser", in: ENV['RAILS_ENV'] || Rails.env) do
         config = ActiveRecord::Base.configurations[ENV['RAILS_ENV'] || Rails.env]
         set_psql_env config
-        puts "Loading db/settings.sql into database '#{config['database']}'"
+        puts "Loading db/settings.sql into database '#{config[:database]}'"
         result = ActiveRecord::Base.connection.execute(<<-SQL).first
-        select 1 as is_super from pg_roles where rolname = '#{config['username']}' and rolsuper
+        select 1 as is_super from pg_roles where rolname = '#{config[:username]}' and rolsuper
         SQL
         unless result && result['is_super']
-          puts "warning: Restoring settings as config/database.yml non-superuser: '#{config['username']}', expect errors, or rerun after granting superuser"
+          puts "warning: Restoring settings as config/database.yml non-superuser: '#{config[:username]}', expect errors, or rerun after granting superuser"
         end
-        `psql --no-psqlrc -f db/settings.sql #{Shellwords.escape(config['database'])}`
+        `psql --no-psqlrc -f db/settings.sql #{Shellwords.escape(config[:database])}`
         raise 'Error loading db/settings.sql' if $?.exitstatus != 0
       end
     else
@@ -315,10 +316,10 @@ namespace :db do
   # of this hackery to support Rails 4.
   if !defined?(set_psql_env)
     def set_psql_env(config)
-      ENV['PGHOST']     = config['host']          if config['host']
-      ENV['PGPORT']     = config['port'].to_s     if config['port']
-      ENV['PGPASSWORD'] = config['password'].to_s if config['password']
-      ENV['PGUSER']     = config['username'].to_s if config['username']
+      ENV['PGHOST']     = config[:host]          if config[:host]
+      ENV['PGPORT']     = config[:port].to_s     if config[:port]
+      ENV['PGPASSWORD'] = config[:password].to_s if config[:password]
+      ENV['PGUSER']     = config[:username].to_s if config[:username]
     end
   end
 
@@ -362,12 +363,17 @@ namespace :db do
 
   def as(user, opts = {}, &block)
     if File.exist?('db/permissions.sql')
-      # `ActiveRecord::Base.configurations` in Rails 6 now returns an object instead of a hash
-      config, config_was = ActiveRecord::Base.configurations.deep_dup.to_h, ActiveRecord::Base.configurations.deep_dup
-      in_env = Array(opts[:in]) || config.keys
-      if config.all? { |env, config_hash| in_env.include?(env) ? config_hash[user] : true }
+      config = ActiveRecord::Base.configurations
+      config_was = ActiveRecord::Base.configurations.deep_dup
+
+      in_env = Array(opts[:in]) || config.map(&:env_name)
+
+      if config.all? { |config_hash| in_env.include?(config_hash.env_name) ? config_hash[user.to_sym] : true }
         disconnect
-        config.each { |env, config_hash| config_hash["username"] = config_hash[user] if in_env.include?(env) }
+        config.each do |config_hash|
+          config_hash.config[:username] = config_hash.config[user.to_sym] if in_env.include?(config_hash.env_name)
+        end
+        
         ActiveRecord::Base.configurations = config
       end
     else
@@ -376,7 +382,7 @@ namespace :db do
     yield
   ensure
     ActiveRecord::Base.configurations = config_was if config_was
-    in_env.each { |env| ActiveRecord::Base.establish_connection(env.intern) } if in_env
+    in_env.each { |env| ActiveRecord::Base.establish_connection(env.to_sym) } if in_env
   end
 
   def disconnect
@@ -386,6 +392,13 @@ namespace :db do
   rescue ActiveRecord::ConnectionNotEstablished
   end
 
+  def configs_for(environments = nil)
+    return ActiveRecord::Base.configurations.configs_for.map(&:configuration_hash) if environments.blank?
+
+    environments.flat_map do |env|
+      ActiveRecord::Base.configurations.configs_for(env_name: env).map(&:configuration_hash)
+    end
+  end
 end
 
 namespace :test do

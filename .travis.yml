@@ -1,33 +1,14 @@
 language: ruby
 cache: bundler
 
+services:
+  - postgresql
+
 rvm:
   - 2.5.8
   - 2.7.2
 
-env:
-  matrix:
-    - PG_VERSION=11
-
-before_install:
-  - git config --global user.name "Prodder In Travis-CI"
-  - git config --global user.email "prodder@example.com"
-  # install postgres
-  - sudo apt-get install postgresql-client-$PG_VERSION postgresql-server-dev-$PG_VERSION
-  # setup pg_dump
-  - ls -al /usr/lib/postgresql/
-  - sudo ln -sfn /usr/lib/postgresql/$PG_VERSION/bin/pg_dump /usr/bin/pg_dump
-  # start up the specific version of PG
-  - sudo -E sh -c 'service postgresql stop'
-  - sleep 5s
-  - sudo -E sh -c 'service postgresql start $PG_VERSION'
-  - psql -U postgres -d postgres -c 'select setting from pg_settings where name = $m$server_version$m$;'
-
 script:
-  - psql --version
-  - pg_lsclusters
-  - psql -U postgres -d postgres -c 'select 1;'
-  - ls -al `which pg_dump`
   - bundle exec rake spec
   - bundle exec rake cucumber
 
