@@ -16,22 +16,40 @@ jobs:
     strategy:
       matrix:
         ruby-version: [2.6, 2.7, 3.0]
-        redis-version: [4, 5, 6]
-
+    services:
+      postgres:
+        image: postgres:12.1-alpine
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
-      - name: Checkout project
+      - name: Checkout Project
         uses: actions/checkout@v3
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby-version }}
-          bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+          bundler-cache: true
 
-      - name: Start Redis
-        uses: supercharge/redis-github-action@1.4.0
-        with:
-          redis-version: ${{ matrix.redis-version }}
+      - name: Install Library Dependencies
+        run: sudo apt-get install libpq-dev
 
-      - name: Run tests
-        run: bundle exec rake
+      - name: Setup Database
+        run: |
+          cp config/database.yml.github-actions config/database.yml
+        env:
+          RAILS_ENV: test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+
+      - name: Test with RSpec
+        env:
+          RAILS_ENV: "test"
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        run: |
+          bundle exec rspec
