@@ -53,3 +53,11 @@ jobs:
           POSTGRES_PASSWORD: postgres
         run: |
           bundle exec rspec
+
+      - name: Test with Cucumber
+        env:
+          RAILS_ENV: "test"
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        run: |
+          bundle exec cucumber
