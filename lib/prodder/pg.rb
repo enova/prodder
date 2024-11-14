@@ -8,6 +8,7 @@ module Prodder
     attr_reader :credentials
 
     def initialize(credentials = {})
+      puts "-------------- initializing pg creds: #{credentials} --------------"
       @credentials = credentials
     end
 
