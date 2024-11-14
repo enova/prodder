@@ -39,6 +39,7 @@ module ProdderHelpers
   end
 
   def self.setup!
+    puts '-------------- creating roles and databases --------------'
     pg = Prodder::PG.new
     pg.create_role 'prodder'
     pg.create_role 'include_this', ['--no-login']
