@@ -25,7 +25,7 @@ jobs:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
         options: >-
-          --health-cmd pg_isready -U postgres
+          --health-cmd pg_isready
           --health-interval 30s
           --health-timeout 15s
           --health-retries 5
@@ -65,7 +65,7 @@ jobs:
           POSTGRES_PASSWORD: postgres
         run: |
           echo "Waiting for PostgreSQL to be ready..."
-          until pg_isready -h localhost -U postgres; do
+          until pg_isready -h localhost; do
             sleep 1
           done
           echo "PostgreSQL is ready!"
