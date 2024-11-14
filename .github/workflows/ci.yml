@@ -18,13 +18,17 @@ jobs:
         ruby-version: [2.6, 2.7, 3.0]
     services:
       postgres:
-        image: postgres:12.1-alpine
+        image: postgres:latest
         ports:
           - 5432:5432
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - name: Checkout Project
         uses: actions/checkout@v3
