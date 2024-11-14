@@ -4,5 +4,6 @@ test:
   encoding: unicode
   database: github-actions
   pool: 20
+  port: 5432
   username: <%= ENV["POSTGRES_USER"] %>
   password: <%= ENV["POSTGRES_PASSWORD"] %>
