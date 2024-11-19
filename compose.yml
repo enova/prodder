@@ -1,0 +1,54 @@
+services:
+  postgres:
+    image: postgres:13-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_HOST_AUTH_METHOD: trust
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: on-failure:5
+
+  prodder:
+    platform: linux/arm64
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        RUBY_VERSION: 3.0
+    volumes:
+      - .:/app
+      - /app/config
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGHOST: localhost
+      PGPORT: "5432"
+      PGUSER: postgres
+      PGPASSWORD: postgres
+    network_mode: host
+
+  rspec:
+    profiles:
+      - test
+    extends:
+      service: prodder
+    command: bundle exec rspec
+
+  cucumber:
+    profiles:
+      - test
+    extends:
+      service: prodder
+    command: bundle exec cucumber
+
+volumes:
+  postgres_data:

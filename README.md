@@ -82,7 +82,7 @@ Things that really matter:
    created. Those initial seeds should have included your production app's `schema_migrations`
    table contents. This means only those migrations that have not yet run in production
    will need to be run locally.
-3. If you configred to have 3 users in your `#config/database.yml` file and have a `permissions.sql` file present,
+3. If you configured to have 3 users in your `#config/database.yml` file and have a `permissions.sql` file present,
    all your `db:*` commands will be run in the context of the user it makes the most sense to run as, mimicking
    our production environment. For instance(s), to reset the database (god forbid we do this in production), it will
    run as `superuser`, to run a migration, as the `migration_user` and your application will connect to the database
