@@ -14,42 +14,54 @@ jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         ruby-version: [2.6, 2.7, 3.0]
     services:
       postgres:
-        image: postgres:12.1-alpine
+        image: postgres:13-alpine
         ports:
           - 5432:5432
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+          POSTGRES_HOST_AUTH_METHOD: trust
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - name: Checkout Project
-        uses: actions/checkout@v3
-
+        uses: actions/checkout@v4
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby-version }}
           bundler-cache: true
-
       - name: Install Library Dependencies
-        run: sudo apt-get install libpq-dev
-
+        run: sudo apt update && sudo apt install -y postgresql-client
       - name: Setup Database
         run: |
-          cp config/database.yml.github-actions config/database.yml
-        env:
-          RAILS_ENV: test
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-
+          mkdir -p config
+          cat <<EOF > config/database.yml
+          test:
+            adapter: postgresql
+            encoding: unicode
+            pool: 20
+            database: prodder_test
+          EOF
       - name: Test with RSpec
         env:
-          RAILS_ENV: "test"
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-        run: |
-          bundle exec rspec
+          PGHOST: localhost
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+        run: bundle exec rspec
+      # - name: Test with Cucumber
+      #   env:
+      #     PGHOST: localhost
+      #     PGPORT: 5432
+      #     PGUSER: postgres
+      #     PGPASSWORD: postgres
+      #   run: bundle exec cucumber
