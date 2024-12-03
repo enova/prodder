@@ -1,5 +1,6 @@
 require 'open3'
 require 'pg'
+require 'set'
 
 module Prodder
   class PG
