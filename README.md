@@ -1,6 +1,5 @@
 
-prodder [![Build Status](https://travis-ci.org/enova/prodder.svg?branch=master)](https://travis-ci.org/enova/prodder)
-=======
+# Prodder
 
 A tool to maintain and load your Rails application's database structure, seed
 table contents, permissions and database settings based on its migration history
@@ -29,6 +28,7 @@ prior to enforcing foreign key constraints and if you want to develop in an envi
 with the same permissions setup as production.
 
 ### Installation
+
 In your Gemfile:
 
 ```ruby
@@ -74,6 +74,7 @@ bundle exec rake db:reset db:migrate
 ```
 
 ### Usage
+
 Things that really matter:
 
 1. `rake db:reset` recreates your database, loading `db/structure.sql`, `db/seeds.sql`,
@@ -205,6 +206,7 @@ store:
 ```
 
 ### Quality Checks
+
 In some cases, such as foreign key dependencies and triggers, you may wish to defer
 loading constraints on your tables until _after_ your seed data has been loaded.
 `prodder` treats the presence of a `quality_check_file` key in the configuration
@@ -212,6 +214,7 @@ as an indication that it should split `structure_file` into those statements whi
 create the base structure, and put the constraints into the `quality_check_file`.
 
 ### Permissions
+
 We have had multiple cases in the past with deployments failing because some role
 cannot access something on prod. To fail early and catch these in development, it
 would be easier to just have these permissions loaded in development environments.
@@ -221,9 +224,8 @@ must configure the 3 users as mentioned before in `#config/database.yml`.
 ```yaml
 store:
   structure_file: db/structure.sql       # CREATE TABLE ...
-  quality_check_file: db/constraints.sql # ALTER TABLE ... ADD FOREIGN KEY ...
+  quality_check_file: db/quality_checks.sql # ALTER TABLE ... ADD FOREIGN KEY ...
 ```
-
 
 ### Example usage
 
@@ -254,12 +256,14 @@ $ prodder push -c prodder.yml
 ```
 
 ## TODO
+
 * Log activity as it is performed.
 * Support tracking a particular branch instead of master.
 * Support specifying the options to pass to each pg_dump form.
 * Select dumping only a subset of a seed table. (pg_dump won't do this ...)
 
 ## Previous Contributors
+
 * [Kyle Hargraves](https://github.com/pd)
 * [Sri Rangarajan](https://github.com/Slania)
 * [Emmanuel Sambo](https://github.com/esambo)
