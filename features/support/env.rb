@@ -1,7 +1,7 @@
 require 'cucumber'
 require 'aruba/cucumber'
 
-$LOAD_PATH.unshift File.expand_path('../../lib', File.dirname(__FILE__))
+$LOAD_PATH.unshift File.expand_path('../../lib', __dir__)
 require 'prodder'
 
 module ProdderHelpers
@@ -90,7 +90,7 @@ module ProdderHelpers
   end
 
   def self.fixture_dbs
-    @fixture_dbs ||= Dir[File.join(File.dirname(__FILE__), '*.sql')].map do |sql|
+    @fixture_dbs ||= Dir[File.join(__dir__, '*.sql')].map do |sql|
       db = File.basename(sql).sub('.sql', '')
       [db, File.read(sql)]
     end
@@ -100,7 +100,7 @@ end
 World ProdderHelpers
 
 Before do
-  @prodder_root = File.expand_path('../..', File.dirname(__FILE__))
+  @prodder_root = File.expand_path('../..', __dir__)
   @aruba_root   = File.join(@prodder_root, 'tmp', 'aruba')
   @aruba_timeout_seconds = 10
   Dir.chdir @prodder_root
