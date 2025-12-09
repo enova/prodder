@@ -10,7 +10,7 @@ group :development, :test do
   gem 'pry'
   gem 'pry-remote'
   gem 'rspec'
-  gem 'cucumber', '< 3' # FIXME
-  gem 'aruba', '~> 0.5.0'
+  gem 'cucumber'
+  gem 'aruba'
   gem 'pg'
 end
