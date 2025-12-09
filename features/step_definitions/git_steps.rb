@@ -25,7 +25,7 @@ Given 'a new commit is already in the "$project" git repository' do |project|
 end
 
 Then 'the new commit should be in the workspace copy of the "$project" repository' do |project|
-  check_file_content "prodder-workspace/#{project}/README", 'Also read this!', true
+  expect("prodder-workspace/#{project}/README").to have_file_content('Also read this!')
 end
 
 Then(/^(\d+) commits? by "([^"]+)" should be in the "([^"]+)" repository$/) do |n, author, project|

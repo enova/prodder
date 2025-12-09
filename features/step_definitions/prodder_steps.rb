@@ -63,15 +63,15 @@ Then 'the output should contain the example config contents' do
 end
 
 Then /^the workspace file "([^"]*)" should match \/([^\/]*)\/$/ do |file, partial_content|
-  check_file_content("prodder-workspace/#{file}", /#{partial_content}/, true)
+  expect("prodder-workspace/#{file}").to have_file_content(/#{partial_content}/)
 end
 
 Then /^the workspace file "([^"]*)" should not match \/([^\/]*)\/$/ do |file, partial_content|
-  check_file_content("prodder-workspace/#{file}", /#{partial_content}/, false)
+  expect("prodder-workspace/#{file}").not_to have_file_content(/#{partial_content}/)
 end
 
 Then /^the workspace file "([^"]*)" should not exist$/ do |file|
-  check_file_presence(["prodder-workspace/#{file}"], false)
+  expect("prodder-workspace/#{file}").not_to be_an_existing_file
 end
 
 Given(/a prodder config in "([^"]*)" with projects?: (.*)/) do |filename, projects|
