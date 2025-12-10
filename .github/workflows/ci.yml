@@ -67,13 +67,15 @@ jobs:
           PGPORT: 5432
           PGUSER: postgres
           PGPASSWORD: postgres
-          PATH: /usr/lib/postgresql/17/bin:${{ env.PATH }}
-        run: bundle exec rspec
+        run: |
+          export PATH="/usr/lib/postgresql/17/bin:$PATH"
+          bundle exec rspec
       - name: Test with Cucumber
         env:
           PGHOST: localhost
           PGPORT: 5432
           PGUSER: postgres
           PGPASSWORD: postgres
-          PATH: /usr/lib/postgresql/17/bin:${{ env.PATH }}
-        run: bundle exec cucumber
+        run: |
+          export PATH="/usr/lib/postgresql/17/bin:$PATH"
+          bundle exec cucumber
