@@ -9,10 +9,11 @@ In short: `db:reset db:migrate`
 
 ## Requirements
 
-- **Ruby 3.3+** - This gem requires Ruby 3.3.0 or later
-- PostgreSQL 9.1.11+ (confirmed working: 9.1.11+, 9.2.6+)
+- **Ruby 3.2+** - This gem requires Ruby 3.2.0 or later (tested on Ruby 3.2 and 3.3)
+- **Bundler 4.0+** - This gem uses Bundler 4.0.1
+- PostgreSQL 9.1.11+ (confirmed working: 9.1.11+, 9.2.6+, 17.x)
 
-**Note:** Support for Ruby versions older than 3.3 (including 2.6, 2.7, and 3.0) has been removed as of version 1.0. If you need to use an older Ruby version, please use a previous version of this gem.
+**Note:** Support for Ruby versions older than 3.2 (including 2.6, 2.7, and 3.0) has been removed as of version 1.0. If you need to use an older Ruby version, please use a previous version of this gem.
 
 ## Overview
 
@@ -157,7 +158,7 @@ has been used in anger on Rails 3.2.x and Rails 4.1.x.
 
 ### Ruby Version
 
-This project uses Ruby 3.3. The required Ruby version is specified in `.ruby-version` and the gemspec file.
+This project supports Ruby 3.2 and 3.3. The required Ruby version is specified in `.ruby-version` and the gemspec file.
 
 ### Testing Frameworks
 
