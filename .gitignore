@@ -2,3 +2,4 @@ Gemfile.lock
 tmp
 prodder-*
 *.log
+features/support/blog.git
