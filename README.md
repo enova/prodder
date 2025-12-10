@@ -7,6 +7,15 @@ and the current state in production databases.
 
 In short: `db:reset db:migrate`
 
+## Requirements
+
+- **Ruby 3.3+** - This gem requires Ruby 3.3.0 or later
+- PostgreSQL 9.1.11+ (confirmed working: 9.1.11+, 9.2.6+)
+
+**Note:** Support for Ruby versions older than 3.3 (including 2.6, 2.7, and 3.0) has been removed as of version 1.0. If you need to use an older Ruby version, please use a previous version of this gem.
+
+## Overview
+
 1. Your project maintains `db/structure.sql`, `db/seeds.sql`, and optional
    `db/quality_checks.sql` and `db/permissions.sql` files as it sees fit (ie, by using `prodder` as a script to dump
    production and push it to your git repository).
@@ -143,6 +152,35 @@ for more info.
 
 This is likely to cause issues across Rails versions. No other choice really. It
 has been used in anger on Rails 3.2.x and Rails 4.1.x.
+
+## Development and Testing
+
+### Ruby Version
+
+This project uses Ruby 3.3. The required Ruby version is specified in `.ruby-version` and the gemspec file.
+
+### Testing Frameworks
+
+This project uses the following testing frameworks:
+
+- **RSpec 3.13+** for unit tests
+- **Cucumber 10.x** for feature tests (upgraded from 2.x)
+- **Aruba 2.x** for CLI testing (upgraded from 0.5.x)
+
+### Running Tests
+
+```bash
+# Run RSpec tests
+bundle exec rspec
+
+# Run Cucumber features
+bundle exec cucumber
+
+# Run all tests
+bundle exec rspec && bundle exec cucumber
+```
+
+### Supported PostgreSQL Versions
 
 Confirmed working versions of Postgres:
 
