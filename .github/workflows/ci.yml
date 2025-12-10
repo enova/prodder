@@ -58,10 +58,10 @@ jobs:
           PGUSER: postgres
           PGPASSWORD: postgres
         run: bundle exec rspec
-      # - name: Test with Cucumber
-      #   env:
-      #     PGHOST: localhost
-      #     PGPORT: 5432
-      #     PGUSER: postgres
-      #     PGPASSWORD: postgres
-      #   run: bundle exec cucumber
+      - name: Test with Cucumber
+        env:
+          PGHOST: localhost
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+        run: bundle exec cucumber
