@@ -2,8 +2,6 @@ require 'prodder'
 require 'thor'
 require 'yaml'
 
-require 'pp' # TODO rm
-
 class Prodder::CLI < Thor
   include Thor::Actions
 
