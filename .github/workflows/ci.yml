@@ -47,10 +47,6 @@ jobs:
           sudo apt-get update
           # Install PostgreSQL 17 client tools
           sudo apt-get install -y postgresql-client-17
-      - name: Configure Git
-        run: |
-          git config --global user.email "ci@example.com"
-          git config --global user.name "CI Test"
       - name: Extract Test Fixtures
         run: |
           cd features/support

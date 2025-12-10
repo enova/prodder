@@ -110,6 +110,12 @@ Before do
   @prodder_root = File.expand_path('../..', __dir__)
   @aruba_root   = File.join(@prodder_root, 'tmp', 'aruba')
   Dir.chdir @prodder_root
+  
+  # Configure git for tests that create commits
+  set_environment_variable 'GIT_AUTHOR_NAME', 'Test User'
+  set_environment_variable 'GIT_AUTHOR_EMAIL', 'test@example.com'
+  set_environment_variable 'GIT_COMMITTER_NAME', 'Test User'
+  set_environment_variable 'GIT_COMMITTER_EMAIL', 'test@example.com'
 end
 
 After('@restore-perms') do
