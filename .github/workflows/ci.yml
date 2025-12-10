@@ -16,10 +16,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.7, 3.0, 3.2, 3.3]
+        ruby-version: [2.7, 3.0, 3.1, 3.2, 3.3]
+        postgres-version: [15, 16, 17]
     services:
       postgres:
-        image: postgres:17-alpine
+        image: postgres:${{ matrix.postgres-version }}-alpine
         ports:
           - 5432:5432
         env:
@@ -39,14 +40,14 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby-version }}
           bundler-cache: true
-      - name: Install PostgreSQL 17 Client
+      - name: Install PostgreSQL ${{ matrix.postgres-version }} Client
         run: |
           # Add PostgreSQL APT repository
           sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
           wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
           sudo apt-get update
-          # Install PostgreSQL 17 client tools
-          sudo apt-get install -y postgresql-client-17
+          # Install PostgreSQL client tools
+          sudo apt-get install -y postgresql-client-${{ matrix.postgres-version }}
       - name: Extract Test Fixtures
         run: |
           cd features/support
@@ -68,7 +69,7 @@ jobs:
           PGUSER: postgres
           PGPASSWORD: postgres
         run: |
-          export PATH="/usr/lib/postgresql/17/bin:$PATH"
+          export PATH="/usr/lib/postgresql/${{ matrix.postgres-version }}/bin:$PATH"
           bundle exec rspec
       - name: Test with Cucumber
         env:
@@ -77,5 +78,5 @@ jobs:
           PGUSER: postgres
           PGPASSWORD: postgres
         run: |
-          export PATH="/usr/lib/postgresql/17/bin:$PATH"
+          export PATH="/usr/lib/postgresql/${{ matrix.postgres-version }}/bin:$PATH"
           bundle exec cucumber
