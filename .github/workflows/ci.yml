@@ -41,6 +41,10 @@ jobs:
           bundler-cache: true
       - name: Install Library Dependencies
         run: sudo apt update && sudo apt install -y postgresql-client
+      - name: Extract Test Fixtures
+        run: |
+          cd features/support
+          tar -xzf blog.git.tgz
       - name: Setup Database
         run: |
           mkdir -p config
