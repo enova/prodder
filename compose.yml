@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres:13-alpine
+    image: postgres:17-alpine
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
@@ -22,7 +22,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        RUBY_VERSION: 3.0
+        RUBY_VERSION: 3.3
     volumes:
       - .:/app
       - /app/config

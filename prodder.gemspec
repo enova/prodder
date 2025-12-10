@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-$:.push File.expand_path("../lib", __FILE__)
+$LOAD_PATH.unshift(File.expand_path("lib", __dir__))
 require "prodder/version"
 
 Gem::Specification.new do |s|
@@ -12,10 +12,12 @@ Gem::Specification.new do |s|
   s.summary     = "Maintain your Rails apps' structure, seed and quality_checks files using production dumps"
   s.description = "Migrations suck long-term. Now you can kill them routinely."
 
-  s.files         = `git ls-files`.split("\n")
-  s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
-  s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
+  s.files         = Dir.glob("{lib,bin,features}/**/*") + Dir.glob("*").reject { |f| File.directory?(f) }
+  s.test_files    = Dir.glob("{test,spec,features}/**/*")
+  s.executables   = Dir.glob("bin/*").map { |f| File.basename(f) }
   s.require_paths = ["lib"]
+
+  s.required_ruby_version = ">= 2.7.0"
 
   # These dependencies do not match the Gemfile's for a reason.
   # These are the only dependencies necessary to satisfy inclusion of this

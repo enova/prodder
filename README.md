@@ -1,53 +1,111 @@
 
 # Prodder
 
+[![Ruby](https://img.shields.io/badge/ruby-2.7%2B-ruby.svg)](https://www.ruby-lang.org)
+[![PostgreSQL](https://img.shields.io/badge/postgresql-15%2B-blue.svg)](https://www.postgresql.org)
+
 A tool to maintain and load your Rails application's database structure, seed
 table contents, permissions and database settings based on its migration history
 and the current state in production databases.
 
-In short: `db:reset db:migrate`
+**In short:** Synchronize your development database with production structure without re-running all migrations.
 
-1. Your project maintains `db/structure.sql`, `db/seeds.sql`, and optional
-   `db/quality_checks.sql` and `db/permissions.sql` files as it sees fit (ie, by using `prodder` as a script to dump
-   production and push it to your git repository).
-2. Make sure `db/seeds.sql` includes the `schema_migrations` table.
-3. Only new migrations will be run against prod's structure using its seed table contents.
-4. Once a migration has been deployed, it should result in `db/structure.sql` and
-   `db/quality_checks.sql` files being modified, and any new seed data being added to
-   `db/seeds.sql` -- including the new entry in `schema_migrations`.
-5. That migration never needs to be run in development again. Feel free to `rm`.
-6. Any application related permission changes will result in `db/permissions.sql` being modified.
+## Why Prodder?
 
-## Replacing `rake db:*`
-`prodder` can be included as a railtie in your application to automatically
-replace many of Rails' `db:*` tasks. The only prerequisites to its usage are
-the existence of `db/structure.sql`, `db/seeds.sql` with at least the
-`schema_migrations` table contents included. Optional `db/quality_checks.sql` and `db/permissions.sql`
-will be loaded after seeding, which can be helpful if you wish to seed the database
-prior to enforcing foreign key constraints and if you want to develop in an environment
-with the same permissions setup as production.
+Traditional Rails development requires running all migrations from scratch, which:
+
+- ❌ Becomes slow as your migration history grows
+- ❌ Can fail if old migrations are incompatible with current code
+- ❌ Doesn't reflect actual production database state
+
+Prodder solves this by:
+
+- ✅ Loading production database structure directly
+- ✅ Running only new migrations not yet deployed to production
+- ✅ Maintaining permissions and quality checks from production
+- ✅ Automatically syncing structure files from production databases
+
+## Requirements
+
+- **Ruby 2.7+** - This gem requires Ruby 2.7.0 or later
+- **Bundler 2.0+** - For dependency management
+- **PostgreSQL 15+** - Requires PostgreSQL 15.0 or later
+
+**Note:** Support for Ruby 2.6 and PostgreSQL versions older than 15 has been removed as of the latest version. If you need to use older versions, please use a previous version of this gem.
+
+## Overview
+
+Prodder follows a simple workflow:
+
+1. **Maintain structure files**: Your project keeps `db/structure.sql`, `db/seeds.sql`, and optionally `db/quality_checks.sql` and `db/permissions.sql` in version control.
+
+2. **Include migrations table**: Ensure `db/seeds.sql` includes the `schema_migrations` table from production.
+
+3. **Run new migrations only**: Only migrations not yet in production's `schema_migrations` table will run locally.
+
+4. **Update structure files**: After deploying a migration to production, update your structure files by running `prodder dump` against production.
+
+5. **Delete old migrations**: Once a migration is deployed and the structure files are updated, the migration file can be safely removed.
+
+6. **Track permissions**: Application permission changes are captured in `db/permissions.sql` for consistent development environments.
+
+### The Prodder Workflow
+
+```
+Production DB → prodder dump → db/*.sql files → Git → Development
+                                                        ↓
+                                              db:reset + new migrations
+```
+
+## Replacing `rake db:*` Tasks
+
+Prodder can be included as a Railtie in your Rails application to automatically
+replace many of Rails' `db:*` tasks with versions that work with production-sourced
+structure files.
+
+### Prerequisites
+
+- `db/structure.sql` - Base database structure
+- `db/seeds.sql` - Seed data including `schema_migrations` table
+- `db/quality_checks.sql` (optional) - Foreign keys and constraints
+- `db/permissions.sql` (optional) - Database permissions for role-based access
 
 ### Installation
 
-In your Gemfile:
+Add to your Gemfile:
 
 ```ruby
 gem 'prodder', require: 'prodder/railtie'
 ```
 
-It doesn't really matter, but for sanity's sake, you should set your `schema_format`
-to `:sql`:
+Configure Rails to use SQL schema format:
 
 ```ruby
 # config/application.rb
-module Whatever
-  class Application
+module YourApp
+  class Application < Rails::Application
     config.active_record.schema_format = :sql
   end
 end
 ```
 
+### Basic Usage
+
+Once installed, use these commands:
+
+```bash
+# Recreate database from structure and seed files
+bundle exec rake db:reset
+
+# Run only new migrations (those not in production's schema_migrations)
+bundle exec rake db:migrate
+
+# The typical development workflow
+bundle exec rake db:reset db:migrate
+```
+
 If you want to work with permissions setup like production:
+
 ```ruby
 # config/database.yml
 
@@ -93,49 +151,48 @@ Things that really matter:
    does not make sense to restore permissions in your environment if you're just going to run everything as a single,
    most likely superuser.
 
-
 ### Details
 
 This will remove the `db:*` tasks:
 
-* `db:_dump`: an internal task used by rails to dump the schema after migrations. Obsolete.
-* `db:drop:*`
-* `db:create:*`
-* `db:migrate`
-* `db:migrate:reset`
-* `db:migrate:up`
-* `db:migrate:down`
-* `db:fixtures:.*`
-* `db:abort_if_pending_migrations`
-* `db:purge:*`
-* `db:charset`
-* `db:collation`
-* `db:rollback`
-* `db:version`
-* `db:forward`
-* `db:reset`
-* `db:schema:*`
-* `db:seed`
-* `db:setup`
-* `db:structure:*`
-* `db:test:*`
-* `test:prepare`: Rails 4.1 added this task to auto-maintain the test DB schema.
+- `db:_dump`: an internal task used by rails to dump the schema after migrations. Obsolete.
+- `db:drop:*`
+- `db:create:*`
+- `db:migrate`
+- `db:migrate:reset`
+- `db:migrate:up`
+- `db:migrate:down`
+- `db:fixtures:.*`
+- `db:abort_if_pending_migrations`
+- `db:purge:*`
+- `db:charset`
+- `db:collation`
+- `db:rollback`
+- `db:version`
+- `db:forward`
+- `db:reset`
+- `db:schema:*`
+- `db:seed`
+- `db:setup`
+- `db:structure:*`
+- `db:test:*`
+- `test:prepare`: Rails 4.1 added this task to auto-maintain the test DB schema.
 
 And reimplement only the following:
 
-* `db:structure:load`: Load the contents of `db/structure.sql` into the database of your current environment.
-* `db:seed`: Load `db/seeds.sql` into the database of your current environment.
-* `db:quality_check`: Load `db/quality_checks.sql` into the database of your current environment, if present.
-* `db:reset`: db:drop db:setup
-* `db:settings`: Load the contents of `db/settings.sql` into the database of your current environment.
-* `db:setup`: db:create db:structure:load db:seed db:quality_check db:settings
-* `db:test:prepare`: RAILS_ENV=test db:reset db:migrate
-* `db:test:clone_structure`: RAILS_ENV=test db:reset db:migrate
-* `test:prepare`: db:test:prepare
-* `db:drop`: Drop database as superuser
-* `db:create`:  Create database as `superuser` and transfer ownership to `migration_user`
-* `db:migrate:*`, `db:rollback` Run migrations up/down as `migration_user`
-* `db:purge:*, db:charset, db:collation, db:version, db:forward, db:rollback, db:abort_if_pending_migrations` as
+- `db:structure:load`: Load the contents of `db/structure.sql` into the database of your current environment.
+- `db:seed`: Load `db/seeds.sql` into the database of your current environment.
+- `db:quality_check`: Load `db/quality_checks.sql` into the database of your current environment, if present.
+- `db:reset`: db:drop db:setup
+- `db:settings`: Load the contents of `db/settings.sql` into the database of your current environment.
+- `db:setup`: db:create db:structure:load db:seed db:quality_check db:settings
+- `db:test:prepare`: RAILS_ENV=test db:reset db:migrate
+- `db:test:clone_structure`: RAILS_ENV=test db:reset db:migrate
+- `test:prepare`: db:test:prepare
+- `db:drop`: Drop database as superuser
+- `db:create`:  Create database as `superuser` and transfer ownership to `migration_user`
+- `db:migrate:*`, `db:rollback` Run migrations up/down as `migration_user`
+- `db:purge:*, db:charset, db:collation, db:version, db:forward, db:rollback, db:abort_if_pending_migrations` as
   appropriate users.
 
 See [lib/prodder/prodder.rake](lib/prodder/prodder.rake)
@@ -144,10 +201,40 @@ for more info.
 This is likely to cause issues across Rails versions. No other choice really. It
 has been used in anger on Rails 3.2.x and Rails 4.1.x.
 
-Confirmed working versions of Postgres:
+## Development and Testing
 
-* 9.1.11+
-* 9.2.6+
+### Ruby Version
+
+This project requires Ruby 2.7+ for gem usage, though development is done on Ruby 3.3+. The development Ruby version is specified in `.ruby-version` and minimum required version in the gemspec file.
+
+### Testing Frameworks
+
+This project uses the following testing frameworks:
+
+- **RSpec 3.13+** for unit tests
+- **Cucumber 10.x** for feature tests (upgraded from 2.x)
+- **Aruba 2.x** for CLI testing (upgraded from 0.5.x)
+
+### Running Tests
+
+```bash
+# Run RSpec tests
+bundle exec rspec
+
+# Run Cucumber features
+bundle exec cucumber
+
+# Run all tests
+bundle exec rspec && bundle exec cucumber
+```
+
+### Supported PostgreSQL Versions
+
+This gem requires PostgreSQL 15.0 or later. Tested and confirmed working on:
+
+- PostgreSQL 15.x
+- PostgreSQL 16.x
+- PostgreSQL 17.x
 
 ## Using prodder to maintain `db/*` files
 
@@ -208,7 +295,7 @@ store:
 ### Quality Checks
 
 In some cases, such as foreign key dependencies and triggers, you may wish to defer
-loading constraints on your tables until _after_ your seed data has been loaded.
+loading constraints on your tables until *after* your seed data has been loaded.
 `prodder` treats the presence of a `quality_check_file` key in the configuration
 as an indication that it should split `structure_file` into those statements which
 create the base structure, and put the constraints into the `quality_check_file`.
@@ -257,19 +344,20 @@ $ prodder push -c prodder.yml
 
 ## TODO
 
-* Log activity as it is performed.
-* Support tracking a particular branch instead of master.
-* Support specifying the options to pass to each pg_dump form.
-* Select dumping only a subset of a seed table. (pg_dump won't do this ...)
+- Log activity as it is performed.
+- Support tracking a particular branch instead of master.
+- Support specifying the options to pass to each pg_dump form.
+- Select dumping only a subset of a seed table. (pg_dump won't do this ...)
 
 ## Previous Contributors
 
-* [Kyle Hargraves](https://github.com/pd)
-* [Sri Rangarajan](https://github.com/Slania)
-* [Emmanuel Sambo](https://github.com/esambo)
-* [Cindy Wise](https://github.com/cyyyz)
-* [Robert Nubel](https://github.com/rnubel)
-* [Josh Cheek](https://github.com/JoshCheek)
+- [Kyle Hargraves](https://github.com/pd)
+- [Sri Rangarajan](https://github.com/Slania)
+- [Emmanuel Sambo](https://github.com/esambo)
+- [Cindy Wise](https://github.com/cyyyz)
+- [Robert Nubel](https://github.com/rnubel)
+- [Josh Cheek](https://github.com/JoshCheek)
+- [Alexandre Castro](https://github.com/acastro2)
 
 ## License
 

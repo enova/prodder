@@ -70,11 +70,12 @@ module Prodder
       end
     end
 
-    def dump_structure(db_name, filename, options = {})
+    def dump_structure(db_name, filename, **options)
       arguments = [
         '--schema-only',
         '--no-privileges',
         '--no-owner',
+        '--restrict-key', 'prodder',
         '--host', credentials['host'],
         '--username', credentials['user']
       ]
@@ -96,6 +97,7 @@ module Prodder
         '--no-privileges',
         '--no-owner',
         '--disable-triggers',
+        '--restrict-key', 'prodder',
         '--host',     credentials['host'],
         '--username', credentials['user'],
         *tables.map { |table| ['--table', table] }.flatten,
@@ -103,12 +105,12 @@ module Prodder
       ]
     end
 
-    def dump_permissions(db_name, filename, options = {})
+    def dump_permissions(db_name, filename, **options)
       perm_out_sql = ""
       user_list = []
 
-      perm_out_sql << dump_db_access_control(db_name, user_list, options)
-      perm_out_sql.prepend pg_dumpall db_name, user_list, options
+      perm_out_sql << dump_db_access_control(db_name, user_list, **options)
+      perm_out_sql.prepend pg_dumpall(db_name, user_list, **options)
 
       perm_out_sql.prepend(alter_role_function)
       perm_out_sql.prepend(create_role_function)
@@ -127,7 +129,7 @@ module Prodder
     DEFAULT_PRIVILEGES = /^ALTER DEFAULT PRIVILEGES /
     SET_OBJECT_OWNERSHIP = /.* OWNER TO /
 
-    def dump_db_access_control(db_name, user_list, options)
+    def dump_db_access_control(db_name, user_list, **options)
       perm_out_sql = ""
       arguments = [
         '--schema-only',
@@ -218,7 +220,7 @@ module Prodder
       end
     end
 
-    def pg_dumpall(db_name, user_list, options)
+    def pg_dumpall(db_name, user_list, **options)
       white_list = options[:included_users] || []
       irrelevant_login_roles = irrelevant_login_roles(db_name, white_list).map { |user| user['oid'] }
 

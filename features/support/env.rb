@@ -1,8 +1,15 @@
 require 'cucumber'
 require 'aruba/cucumber'
 
-$LOAD_PATH.unshift File.expand_path('../../lib', File.dirname(__FILE__))
+$LOAD_PATH.unshift File.expand_path('../../lib', __dir__)
 require 'prodder'
+
+# Configure Aruba to find the prodder executable
+Aruba.configure do |config|
+  config.command_search_paths << File.expand_path('../../bin', __dir__)
+  config.exit_timeout = 10
+  config.io_wait_timeout = 10
+end
 
 module ProdderHelpers
   def strip_leading(string)
@@ -11,21 +18,21 @@ module ProdderHelpers
   end
 
   def in_workspace(name, &block)
-    in_current_dir { Dir.chdir("prodder-workspace/#{name}", &block) }
+    in_current_directory { Dir.chdir("prodder-workspace/#{name}", &block) }
   end
 
   def commit_to_remote(project)
     @dirs = ['tmp', 'aruba']
-    run_simple "git clone repos/#{project}.git tmp-extra-commit-#{project}"
+    run_command_and_stop "git clone repos/#{project}.git tmp-extra-commit-#{project}"
     cd "tmp-extra-commit-#{project}"
 
     append_to_file "README", 'Also read this!'
-    run_simple 'git add README'
-    run_simple 'git commit -m "Second commit"'
-    run_simple "git push origin master"
+    run_command_and_stop 'git add README'
+    run_command_and_stop 'git -c user.email="test@example.com" -c user.name="Test User" commit -m "Second commit"'
+    run_command_and_stop "git push origin master"
 
     cd '..'
-    run_simple "rm -rf tmp-extra-commit-#{project}"
+    run_command_and_stop "rm -rf tmp-extra-commit-#{project}"
   end
 
   def update_config(filename, &block)
@@ -90,7 +97,7 @@ module ProdderHelpers
   end
 
   def self.fixture_dbs
-    @fixture_dbs ||= Dir[File.join(File.dirname(__FILE__), '*.sql')].map do |sql|
+    @fixture_dbs ||= Dir[File.join(__dir__, '*.sql')].map do |sql|
       db = File.basename(sql).sub('.sql', '')
       [db, File.read(sql)]
     end
@@ -100,10 +107,15 @@ end
 World ProdderHelpers
 
 Before do
-  @prodder_root = File.expand_path('../..', File.dirname(__FILE__))
+  @prodder_root = File.expand_path('../..', __dir__)
   @aruba_root   = File.join(@prodder_root, 'tmp', 'aruba')
-  @aruba_timeout_seconds = 10
   Dir.chdir @prodder_root
+  
+  # Configure git for tests that create commits
+  set_environment_variable 'GIT_AUTHOR_NAME', 'Test User'
+  set_environment_variable 'GIT_AUTHOR_EMAIL', 'test@example.com'
+  set_environment_variable 'GIT_COMMITTER_NAME', 'Test User'
+  set_environment_variable 'GIT_COMMITTER_EMAIL', 'test@example.com'
 end
 
 After('@restore-perms') do
