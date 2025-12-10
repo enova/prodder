@@ -39,8 +39,14 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby-version }}
           bundler-cache: true
-      - name: Install Library Dependencies
-        run: sudo apt update && sudo apt install -y postgresql-client
+      - name: Install PostgreSQL 17 Client
+        run: |
+          # Add PostgreSQL APT repository
+          sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+          wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+          sudo apt-get update
+          # Install PostgreSQL 17 client tools
+          sudo apt-get install -y postgresql-client-17
       - name: Extract Test Fixtures
         run: |
           cd features/support
