@@ -75,6 +75,7 @@ module Prodder
         '--schema-only',
         '--no-privileges',
         '--no-owner',
+        '--restrict-key', 'prodder',
         '--host', credentials['host'],
         '--username', credentials['user']
       ]
@@ -96,6 +97,7 @@ module Prodder
         '--no-privileges',
         '--no-owner',
         '--disable-triggers',
+        '--restrict-key', 'prodder',
         '--host',     credentials['host'],
         '--username', credentials['user'],
         *tables.map { |table| ['--table', table] }.flatten,
