@@ -17,7 +17,7 @@ Gem::Specification.new do |s|
   s.executables   = Dir.glob("bin/*").map { |f| File.basename(f) }
   s.require_paths = ["lib"]
 
-  s.required_ruby_version = ">= 3.3.0"
+  s.required_ruby_version = ">= 3.2.0"
 
   # These dependencies do not match the Gemfile's for a reason.
   # These are the only dependencies necessary to satisfy inclusion of this
