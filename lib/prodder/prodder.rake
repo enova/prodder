@@ -204,7 +204,7 @@ namespace :db do
     desc "Load db/structure.sql into the current environment's database"
     task :load => dependencies do
       as("superuser", in: ENV['RAILS_ENV'] || Rails.env) do
-        config = ActiveRecord::Base.configurations[ENV['RAILS_ENV'] || Rails.env].with_indifferent_access
+        config = ActiveRecord::Base.configurations.find_db_config(ENV['RAILS_ENV'] || Rails.env).configuration_hash.with_indifferent_access
         set_psql_env config
         puts "Loading db/structure.sql into database '#{config['database']}'"
         `psql --no-psqlrc -f db/structure.sql #{Shellwords.escape(config['database'])}`
@@ -217,7 +217,7 @@ namespace :db do
   task :seed => dependencies do
     if File.exist?('db/seeds.sql')
       as("superuser", in: ENV['RAILS_ENV'] || Rails.env) do
-        config = ActiveRecord::Base.configurations[ENV['RAILS_ENV'] || Rails.env].with_indifferent_access
+        config = ActiveRecord::Base.configurations.find_db_config(ENV['RAILS_ENV'] || Rails.env).configuration_hash.with_indifferent_access
         set_psql_env config
         puts "Loading db/seeds.sql into database '#{config['database']}'"
         `psql --no-psqlrc -f db/seeds.sql #{Shellwords.escape(config['database'])}`
@@ -232,7 +232,7 @@ namespace :db do
   task :quality_check => dependencies do
     if File.exist?('db/quality_checks.sql')
       as("superuser", in: ENV['RAILS_ENV'] || Rails.env) do
-        config = ActiveRecord::Base.configurations[ENV['RAILS_ENV'] || Rails.env].with_indifferent_access
+        config = ActiveRecord::Base.configurations.find_db_config(ENV['RAILS_ENV'] || Rails.env).configuration_hash.with_indifferent_access
         set_psql_env config
         puts "Loading db/quality_checks.sql into database '#{config['database']}'"
         `psql --no-psqlrc -f db/quality_checks.sql #{Shellwords.escape(config['database'])}`
@@ -247,7 +247,7 @@ namespace :db do
   task :permission => dependencies do
     if File.exist?('db/permissions.sql')
       as("superuser", in: ENV['RAILS_ENV'] || Rails.env) do
-        config = ActiveRecord::Base.configurations[ENV['RAILS_ENV'] || Rails.env].with_indifferent_access
+        config = ActiveRecord::Base.configurations.find_db_config(ENV['RAILS_ENV'] || Rails.env).configuration_hash.with_indifferent_access
         set_psql_env config
         puts "Loading db/permissions.sql into database '#{config['database']}'"
         result = ActiveRecord::Base.connection.execute(<<-SQL).first
@@ -268,7 +268,7 @@ namespace :db do
   task :settings => dependencies do
     if File.exist?('db/settings.sql')
       as("superuser", in: ENV['RAILS_ENV'] || Rails.env) do
-        config = ActiveRecord::Base.configurations[ENV['RAILS_ENV'] || Rails.env].with_indifferent_access
+        config = ActiveRecord::Base.configurations.find_db_config(ENV['RAILS_ENV'] || Rails.env).configuration_hash.with_indifferent_access
         set_psql_env config
         puts "Loading db/settings.sql into database '#{config['database']}'"
         result = ActiveRecord::Base.connection.execute(<<-SQL).first
@@ -362,19 +362,22 @@ namespace :db do
 
   def as(user, opts = {}, &block)
     if File.exist?('db/permissions.sql')
-      config, config_was = Rails.configuration.database_configuration, ActiveRecord::Base.configurations.deep_dup
+      configs = ActiveRecord::Base.configurations.configs_for
+      config = configs.map { |c| [c.env_name, c.configuration_hash] }.to_h.with_indifferent_access
+      config_was = config.deep_dup
+
       in_env = Array(opts[:in]) || config.keys
       if config.all? { |env, config_hash| in_env.include?(env) ? config_hash[user] : true }
         disconnect
         config.each { |env, config_hash| config_hash["username"] = config_hash[user] if in_env.include?(env) }
-        ActiveRecord::Base.configurations = config
+        ActiveRecord::Base.configurations = ActiveRecord::DatabaseConfigurations.new(config)
       end
     else
       puts "No permissions file (db/permissions.sql) found, running everything in context of user"
     end
     yield
   ensure
-    ActiveRecord::Base.configurations = config_was if config_was
+    ActiveRecord::Base.configurations = ActiveRecord::DatabaseConfigurations.new(config_was) if config_was
     in_env.each { |env| ActiveRecord::Base.establish_connection(env.intern) } if in_env
   end
 
@@ -393,5 +396,6 @@ end
 
 # Yes, I really want migrations to run against the test DB.
 Rake::Task['db:migrate'].actions.unshift(proc {
-  ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations[ENV['RAILS_ENV'] || Rails.env].with_indifferent_access)
+  ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations.find_db_config(ENV['RAILS_ENV'] || Rails.env))
+
 })
